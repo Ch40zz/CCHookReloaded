@@ -1,4 +1,4 @@
-# CCHook:Reloaded - A highly customizable and open source Enemy Territory cheat
+# CCHook:Reloaded - A modern, mod independent open source cheat for Enemy Territory
 
 [![CCHookReloaded](https://yt-embed.herokuapp.com/embed?v=JvmvVpG1D1Y)](https://www.youtube.com/watch?v=JvmvVpG1D1Y "CCHook:Reloaded")
 
@@ -132,6 +132,8 @@ It is therefore easily visible in the Ldr module list. This code should probably
 However, right now no mod detects the cheat even using `LdrLoadDll()`.  
 Another already mentioned improvement wouldd be adding a more generic HWID spoofing by directly hooking the Windows APIs in question.
 This hasn't be done yet because the goal of this cheat was to not modify any read-only data.  
+A more obvious missing feature is menu to view, enable/disable or customize certain features dynamically ingame.
+I decided against adding a menu because it adds quite a lot of code that was unnecessary for showing the main hooking techniques.
 Lastly, the aimbot prediction is really just rudimentary and should be replaced with some more advanced techniques.
 One big improvement would be the use of backtracking as it is done nowadays for quake (source) based such as Counter-Strike.
 
