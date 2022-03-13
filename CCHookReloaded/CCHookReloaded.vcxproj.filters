@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\ETSDK">
+      <UniqueIdentifier>{14031345-f634-41af-8c8a-26f9f93566ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ETSDK">
+      <UniqueIdentifier>{f0450cf4-6e4b-4bb1-9e77-2f7e4b4b72e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ETSDK\etmain">
+      <UniqueIdentifier>{947a716b-cfd6-4e3f-b84a-86eb74cb5a22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ETSDK\src">
+      <UniqueIdentifier>{c5bf5577-acc4-4df6-8bf2-81f3a23c05bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ETSDK\etmain\ui">
+      <UniqueIdentifier>{644541cc-b4f1-424a-a87f-041001350fda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ETSDK\src\cgame">
+      <UniqueIdentifier>{266c236a-eeb4-46bd-a59e-f37ce2f1aaec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ETSDK\src\game">
+      <UniqueIdentifier>{e2ac145a-be96-4b4c-bf5c-b585d6ed37b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ETSDK\src\ui">
+      <UniqueIdentifier>{7e5c2582-72a4-408f-ae5f-02f7b84d8912}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Assembly">
+      <UniqueIdentifier>{60dfcf17-ea20-44fe-8fbd-7d6186fada8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Crypto">
+      <UniqueIdentifier>{663c1727-5ae1-4b49-8719-a7aec0688ddb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Crypto">
+      <UniqueIdentifier>{7bd185d3-6f71-4d8b-9bcf-7ab06df9f385}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\etmain\ui\menudef.h">
+      <Filter>Header Files\ETSDK\etmain\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\etmain\ui\menumacros.h">
+      <Filter>Header Files\ETSDK\etmain\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\cgame\cg_public.h">
+      <Filter>Header Files\ETSDK\src\cgame</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\cgame\tr_types.h">
+      <Filter>Header Files\ETSDK\src\cgame</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\cgame\cg_local.h">
+      <Filter>Header Files\ETSDK\src\cgame</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\game\q_shared.h">
+      <Filter>Header Files\ETSDK\src\game</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\game\surfaceflags.h">
+      <Filter>Header Files\ETSDK\src\game</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\game\bg_classes.h">
+      <Filter>Header Files\ETSDK\src\game</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\game\bg_local.h">
+      <Filter>Header Files\ETSDK\src\game</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\game\bg_public.h">
+      <Filter>Header Files\ETSDK\src\game</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\game\botlib.h">
+      <Filter>Header Files\ETSDK\src\game</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\game\g_local.h">
+      <Filter>Header Files\ETSDK\src\game</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\game\g_public.h">
+      <Filter>Header Files\ETSDK\src\game</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\game\g_team.h">
+      <Filter>Header Files\ETSDK\src\game</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\ui\ui_public.h">
+      <Filter>Header Files\ETSDK\src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\ui\ui_shared.h">
+      <Filter>Header Files\ETSDK\src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\ui\keycodes.h">
+      <Filter>Header Files\ETSDK\src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ETSDK\src\ui\ui_local.h">
+      <Filter>Header Files\ETSDK\src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="base64.h">
+      <Filter>Header Files\Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="crc32.h">
+      <Filter>Header Files\Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="sha1.h">
+      <Filter>Header Files\Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="obfuscation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="offsets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="etsdk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ETSDK\src\game\bg_misc.c">
+      <Filter>Source Files\ETSDK</Filter>
+    </ClCompile>
+    <ClCompile Include="ETSDK\src\game\q_math.c">
+      <Filter>Source Files\ETSDK</Filter>
+    </ClCompile>
+    <ClCompile Include="ETSDK\src\game\q_shared.c">
+      <Filter>Source Files\ETSDK</Filter>
+    </ClCompile>
+    <ClCompile Include="ETSDK\src\ui\ui_shared.c">
+      <Filter>Source Files\ETSDK</Filter>
+    </ClCompile>
+    <ClCompile Include="base64.c">
+      <Filter>Source Files\Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="crc32.c">
+      <Filter>Source Files\Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="sha1.c">
+      <Filter>Source Files\Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="ui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="RetSpoof.asm">
+      <Filter>Source Files\Assembly</Filter>
+    </MASM>
+  </ItemGroup>
+</Project>
