@@ -13,7 +13,7 @@ namespace tools
 		{
 			if(*region_it != *pattern)
 				continue;
-        
+
 			const uint8_t *pattern_it = pattern;
 			const uint8_t *memory_it = region_it;
 			const char *mask_it = mask;

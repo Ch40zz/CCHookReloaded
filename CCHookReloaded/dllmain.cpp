@@ -1,6 +1,6 @@
 /* Disclaimer:
-   This cheat has been successfully tested on several mods including:
-    - ETLegacy
+	This cheat has been successfully tested on several mods including:
+	- ETLegacy
 	- EtMain
 	- EtPub
 	- EtPro (+Spoofer)
@@ -128,7 +128,7 @@ EMod InitializeMod()
 			}\n\
 		}\n");
 
-	XorS(quaqShaderText, "quadShader\n\
+	XorS(quadShaderText, "quadShader\n\
 		{\n\
 			deformVertexes wave 100 sin 3 0 0 0\n\
 			{\n\
@@ -166,7 +166,7 @@ EMod InitializeMod()
 				blendfunc GL_ONE GL_ONE\n\
 			}\n\
 		}\n");
-	
+
 	XorS(circleShaderText, "circleShader\n\
 		{\n\
 			polygonOffset\n\
@@ -179,11 +179,11 @@ EMod InitializeMod()
 
 	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("coverShader"), coverShaderText.decrypt());
 	media.coverShader = DoSyscall(CG_R_REGISTERSHADER, XorString("coverShader"));
-			
+
 	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("plainShader"), plainShaderText.decrypt());
 	media.plainShader = DoSyscall(CG_R_REGISTERSHADER, XorString("plainShader"));
 
-	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("quadShader"), quaqShaderText.decrypt());
+	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("quadShader"), quadShaderText.decrypt());
 	media.quadShader = DoSyscall(CG_R_REGISTERSHADER, XorString("quadShader"));
 
 	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("plasticShader"), plasticShaderText.decrypt());

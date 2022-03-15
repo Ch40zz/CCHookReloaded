@@ -43,10 +43,10 @@ bool InjectDll(HANDLE processHandle, std::wstring_view dllPath)
 	/* 4: DllHandle */ *(uint8_t**)(shellcode_data + 1)			= shellcode;
 	/* LdrLoadDll() */ *(void**)(shellcode_data + 21)			= GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "LdrLoadDll");
 
-    if (!WriteProcessMemory(processHandle, shellcode, shellcode_data, sizeof(shellcode_data), nullptr))
+	if (!WriteProcessMemory(processHandle, shellcode, shellcode_data, sizeof(shellcode_data), nullptr))
 		return false;
 	
-    HANDLE threadHandle = CreateRemoteThread(processHandle, nullptr, 0, (LPTHREAD_START_ROUTINE)shellcode, nullptr, 0, nullptr);
+	HANDLE threadHandle = CreateRemoteThread(processHandle, nullptr, 0, (LPTHREAD_START_ROUTINE)shellcode, nullptr, 0, nullptr);
 	if (!threadHandle)
 		return false;
 
@@ -63,7 +63,7 @@ bool InjectDll(HANDLE processHandle, std::wstring_view dllPath)
 	}
 
 	(void)CloseHandle(threadHandle);
-    (void)VirtualFreeEx(processHandle, mem, 0, MEM_RELEASE);
+	(void)VirtualFreeEx(processHandle, mem, 0, MEM_RELEASE);
 
 	return true;
 }
@@ -77,7 +77,7 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 	*/
 
 	wchar_t  startupPathBuff[MAX_PATH + 1];
-    GetModuleFileNameW(nullptr, startupPathBuff, std::size(startupPathBuff) - 1);
+	GetModuleFileNameW(nullptr, startupPathBuff, std::size(startupPathBuff) - 1);
 	std::filesystem::path startupPath = { startupPathBuff };
 
 	wchar_t etExePath[MAX_PATH + 1] = { L"et.exe" };
@@ -105,7 +105,7 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 
 	
 	PROCESS_INFORMATION pi = {};
-    STARTUPINFOW si = { sizeof(STARTUPINFOW) };
+	STARTUPINFOW si = { sizeof(STARTUPINFOW) };
 	std::filesystem::path exePath = { etExePath };
 	if (!CreateProcessW(nullptr, etExePath, nullptr, nullptr, false, CREATE_SUSPENDED, nullptr, exePath.parent_path().c_str(), &si, &pi))
 	{
@@ -122,11 +122,11 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 
 	typedef NTSTATUS (WINAPI *tNtResumeProcess)(HANDLE handle);
 	tNtResumeProcess NtResumeProcess = (tNtResumeProcess)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtResumeProcess");
-    if (!NT_SUCCESS(NtResumeProcess(pi.hProcess)))
+	if (!NT_SUCCESS(NtResumeProcess(pi.hProcess)))
 	{
 		TerminateProcess(pi.hProcess, 1);
 		return 1;
 	}
 
-    return 0;
+	return 0;
 }

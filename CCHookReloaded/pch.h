@@ -45,18 +45,18 @@ extern "C" intptr_t __fastcall SpoofCall16(uintptr_t spoofed_retaddr, uintptr_t 
 // Missing Windows structs
 typedef struct _LSA_UNICODE_STRING
 {
-    USHORT Length;
-    USHORT MaximumLength;
-    PWSTR  Buffer;
+	USHORT Length;
+	USHORT MaximumLength;
+	PWSTR  Buffer;
 } LSA_UNICODE_STRING, *PLSA_UNICODE_STRING, UNICODE_STRING, *PUNICODE_STRING;
 
 typedef union _LDR_DLL_NOTIFICATION_DATA
 {
-    ULONG Flags;					//Reserved.
-    PUNICODE_STRING FullDllName;	//The full path name of the DLL module.
-    PUNICODE_STRING BaseDllName;	//The base file name of the DLL module.
-    PVOID DllBase;					//A pointer to the base address for the DLL in memory.
-    ULONG SizeOfImage;				//The size of the DLL image, in bytes.
+	ULONG Flags;					//Reserved.
+	PUNICODE_STRING FullDllName;	//The full path name of the DLL module.
+	PUNICODE_STRING BaseDllName;	//The base file name of the DLL module.
+	PVOID DllBase;					//A pointer to the base address for the DLL in memory.
+	ULONG SizeOfImage;				//The size of the DLL image, in bytes.
 } LDR_DLL_NOTIFICATION_DATA, *PLDR_DLL_NOTIFICATION_DATA;
 
 
@@ -601,7 +601,7 @@ struct hitbox_t
 
 static const hitbox_def_t head_hitboxes[] =
 {
-    // stand            crouch            prone              stand moving       crouch moving      hitbox size
+	// stand            crouch            prone              stand moving       crouch moving      hitbox size
 	{ { 0.0, 0.0, 0.0}, { 0.0, 0.0, 0.0}, { 0.0,  0.0, 0.0}, { 0.0,  0.0, 0.0}, { 0.0,  0.0, 0.0}, { 0.0, 0.0, 0.0} },	// NOMOD
 	{ { 0.0, 0.0, 4.0}, { 0.0, 0.0, 4.0}, { 0.0,  0.0, 4.0}, { 0.0,  0.0, 4.0}, { 0.0,  0.0, 4.0}, {12.0,12.0,12.0} },	// ETMAIN
 	{ { 3.0, 0.0, 6.5}, { 3.0,-0.5, 6.0}, { 1.0,  0.0, 7.0}, {-5.0, -1.0, 6.5}, { 1.0,  3.0, 4.5}, {12.0,12.0,12.0} },	// ETPUB FIXED
