@@ -174,11 +174,13 @@ namespace eng
 
 		if (cfg.aimbotHumanAim)
 		{
-			float targetScreenSizeDegX = cfg.aimbotHumanRadiusX / VectorDistance(predictVieworg, target) * 180.0f;
-			float targetScreenSizeDegY = cfg.aimbotHumanRadiusY / VectorDistance(predictVieworg, target) * 180.0f;
+			const float targetDist = VectorDistance(predictVieworg, target);
 
-			targetScreenSizeDegX = min(targetScreenSizeDegX, cfg.aimbotHumanRadiusMinX);
-			targetScreenSizeDegY = min(targetScreenSizeDegY, cfg.aimbotHumanRadiusMinY);
+			float targetScreenSizeDegX = cfg.aimbotHumanFovX / targetDist * 180.0f;
+			float targetScreenSizeDegY = cfg.aimbotHumanFovY / targetDist * 180.0f;
+
+			targetScreenSizeDegX = min(targetScreenSizeDegX, cfg.aimbotHumanFovMaxX);
+			targetScreenSizeDegY = min(targetScreenSizeDegY, cfg.aimbotHumanFovMaxY);
 
 			if (abs(yawOffset)   < targetScreenSizeDegX && 
 				abs(pitchOffset) < targetScreenSizeDegY)

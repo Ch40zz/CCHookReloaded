@@ -44,12 +44,12 @@ struct SConfig
 	bool aimbotStickyAutoReset = true;
 	bool aimbotLockViewangles = true;
 	bool aimbotAutoshoot = false;
-	bool aimbotAntiLagCompensation = true;
+	bool aimbotAntiLagCompensation = false;
 	bool aimbotHumanAim = false;
-	float aimbotHumanRadiusX = 10.0f;
-	float aimbotHumanRadiusY = 15.0f;
-	float aimbotHumanRadiusMinX = 5.0f;
-	float aimbotHumanRadiusMinY = 10.0f;
+	float aimbotHumanFovX = 10.0f;
+	float aimbotHumanFovY = 15.0f;
+	float aimbotHumanFovMaxX = 5.0f;
+	float aimbotHumanFovMaxY = 10.0f;
 	float aimbotHumanSpeed = 0.0666f;
 
 
