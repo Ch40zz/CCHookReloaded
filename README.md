@@ -130,7 +130,7 @@ This however is pretty trivial and might be done soon.
 Another simple improvement would be the injector. The injector is currently using `LdrLoadDll()` to inject the dll.
 It is therefore easily visible in the Ldr module list. This code should probably be swapped out with a manual mapping implementation.
 However, right now no mod detects the cheat even using `LdrLoadDll()`.  
-Another already mentioned improvement wouldd be adding a more generic HWID spoofing by directly hooking the Windows APIs in question.
+Another already mentioned improvement would be adding a more generic HWID spoofing by directly hooking the Windows APIs in question.
 This hasn't be done yet because the goal of this cheat was to not modify any read-only data.  
 A more obvious missing feature is menu to view, enable/disable or customize certain features dynamically ingame.
 I decided against adding a menu because it adds quite a lot of code that was unnecessary for showing the main hooking techniques.  
