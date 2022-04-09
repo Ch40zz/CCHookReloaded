@@ -88,11 +88,13 @@ extern CL_CgameSystemCalls_t orig_CL_CgameSystemCalls;
 typedef void (*SCR_UpdateScreen_t)();
 
 template<class t1, class t2=intptr_t, class t3=intptr_t, class t4=intptr_t, class t5=intptr_t, class t6=intptr_t,
-		 class t7=intptr_t, class t8=intptr_t, class t9=intptr_t, class t10=intptr_t, class t11=intptr_t, class t12=intptr_t>
+		 class t7=intptr_t, class t8=intptr_t, class t9=intptr_t, class t10=intptr_t, class t11=intptr_t,
+		 class t12=intptr_t, class t13=intptr_t, class t14=intptr_t, class t15=intptr_t, class t16=intptr_t>
 static intptr_t DoSyscall(t1 a1, t2 a2={}, t3 a3={}, t4 a4={}, t5 a5={}, t6 a6={}, 
-					t7 a7={}, t8 a8={}, t9 a9={}, t10 a10={}, t11 a11={}, t12 a12={})
+					t7 a7={}, t8 a8={}, t9 a9={}, t10 a10={}, t11 a11={},
+					t12 a12={}, t13 a13={}, t14 a14={}, t15 a15={}, t16 a16={})
 {
-	intptr_t args[12] = 
+	intptr_t args[16] = 
 	{
 		*(intptr_t*)&a1,
 		*(intptr_t*)&a2,
@@ -106,6 +108,10 @@ static intptr_t DoSyscall(t1 a1, t2 a2={}, t3 a3={}, t4 a4={}, t5 a5={}, t6 a6={
 		*(intptr_t*)&a10,
 		*(intptr_t*)&a11,
 		*(intptr_t*)&a12,
+		*(intptr_t*)&a13,
+		*(intptr_t*)&a14,
+		*(intptr_t*)&a15,
+		*(intptr_t*)&a16,
 	};
 
 	return orig_CL_CgameSystemCalls(args);
@@ -200,7 +206,8 @@ struct vm_t
 	// for dynamic linked modules
 	void *dllHandle;
 	intptr_t (QDECL *entryPoint)(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a3, intptr_t a4, intptr_t a5,
-		intptr_t a6, intptr_t a7, intptr_t a8, intptr_t a9, intptr_t a10, intptr_t a11, intptr_t a12);
+		intptr_t a6, intptr_t a7, intptr_t a8, intptr_t a9, intptr_t a10, intptr_t a11, intptr_t a12, 
+		intptr_t a13, intptr_t a14, intptr_t a15, intptr_t a16);
 
 	// for interpreted modules
 	qboolean currentlyInterpreting;

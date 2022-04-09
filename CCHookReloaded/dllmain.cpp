@@ -981,10 +981,12 @@ void __fastcall hooked_glReadPixels(void *_this, void *edx, int x, int y, int wi
 }
 
 typedef intptr_t (__cdecl *vmMain_t)(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a3, intptr_t a4, 
-	intptr_t a5, intptr_t a6, intptr_t a7, intptr_t a8, intptr_t a9, intptr_t a10, intptr_t a11, intptr_t a12);
+	intptr_t a5, intptr_t a6, intptr_t a7, intptr_t a8, intptr_t a9, intptr_t a10, intptr_t a11, 
+	intptr_t a12, intptr_t a13, intptr_t a14, intptr_t a15, intptr_t a16);
 vmMain_t orig_vmMain;
 intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a3, intptr_t a4, 
-	intptr_t a5, intptr_t a6, intptr_t a7, intptr_t a8, intptr_t a9, intptr_t a10, intptr_t a11, intptr_t a12)
+	intptr_t a5, intptr_t a6, intptr_t a7, intptr_t a8, intptr_t a9, intptr_t a10, intptr_t a11,
+	intptr_t a12, intptr_t a13, intptr_t a14, intptr_t a15, intptr_t a16)
 {
 	if (hookTimer)
 	{
@@ -999,8 +1001,9 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 	hookVM.systemCall = hooked_CL_CgameSystemCalls;
 	off::cur.currentVM() = &hookVM;
 
-	auto VmMainCall = [&](intptr_t _id, intptr_t _a1=0, intptr_t _a2=0, intptr_t _a3=0, intptr_t _a4=0, intptr_t _a5=0, intptr_t _a6=0, 
-							intptr_t _a7=0, intptr_t _a8=0, intptr_t _a9=0, intptr_t _a10=0, intptr_t _a11=0, intptr_t _a12=0) -> intptr_t {
+	auto VmMainCall = [&](intptr_t _id, intptr_t _a1=0, intptr_t _a2=0, intptr_t _a3=0, intptr_t _a4=0, intptr_t _a5=0, 
+							intptr_t _a6=0, intptr_t _a7=0, intptr_t _a8=0, intptr_t _a9=0, intptr_t _a10=0, intptr_t _a11=0,
+							intptr_t _a12=0, intptr_t _a13=0, intptr_t _a14=0, intptr_t _a15=0, intptr_t _a16=0) -> intptr_t {
 		// Restore vmMain original temporarily
 		vm_t *_cgvm = off::cur.cgvm();
 		_cgvm->entryPoint = orig_vmMain;
@@ -1014,7 +1017,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 		}
 		else
 		{
-			result = orig_vmMain(_id, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9, _a10, _a11, _a12);
+			result = orig_vmMain(_id, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9, _a10, _a11, _a12, _a13, _a14, _a15, _a16);
 		}
 
 		// Rehook vmMain
@@ -1027,7 +1030,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 		return result;
 	};
 	
-	intptr_t result = VmMainCall(id, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+	intptr_t result = VmMainCall(id, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16);
 	
 	if (cfg.etproGuid && cfg.etproGuid[0]) etpro_SpoofGUID(cfg.etproGuid);
 	if (cfg.nitmodMac && cfg.nitmodMac[0]) nitmod_SpoofMAC(cfg.nitmodMac);
