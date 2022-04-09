@@ -1,0 +1,10 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# Top-most EditorConfig file
+root = true
+
+# Tab indentation
+[*]
+indent_style = tab
+indent_size = 4
+tab_width = 4
