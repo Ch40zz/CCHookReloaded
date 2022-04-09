@@ -83,7 +83,7 @@ namespace off
 
 	inline COffsets offsets[]
 	{
-		// 2.60b
+		// ET 2.60b
 		{
 			/*m_Timedatestamp =*/ 0x445F5790,
 
@@ -91,17 +91,17 @@ namespace off
 			{
 				/*refExport =*/ 0x013E8BC0,				// "----- Initializing Renderer ----\n", "Couldn't initialize refresh", "cl_paused"
 				/*VM_DllSyscall = 0x004488A0,*/			// "VM_Create: bad parms", 8B ? ? ? ? ? 8D ? 24 ? ? FF ? 04 83 C4 04 C3
-				/*VM_Call_vmMain =*/ 0x00448AE2,
-				/*SCR_UpdateScreen =*/ 0x00414160,
+				/*VM_Call_vmMain =*/ 0x00448AE2,		// "VM_Call( %i )\n"
+				/*SCR_UpdateScreen =*/ 0x00414160,		// "cmd say "
 				/*currentVM =*/ 0x010229F0,
-				/*cgvm =*/ 0x0168FB14,
+				/*cgvm =*/ 0x0168FB14,					// "VM_Create on cgame failed"
 				/*kbuttons =*/ 0x008359D8,				// "+left" => handler => push offset; call IN_KeyDown
-				/*viewangles =*/ 0x013EEA88,
-				/*clc_challenge =*/ 0x015D6B08,
-				/*reliableCommands =*/ 0x015D6B1C,
+				/*viewangles =*/ 0x013EEA88,			// "%f : %f\n"
+				/*clc_challenge =*/ 0x015D6B08,			// "challenge: %d\n"
+				/*reliableCommands =*/ 0x015D6B1C,		// "Client command overflow"
 				/*clc_reliableSequence =*/ 0x015D6B14,
-				/*netchan_remoteAddress =*/ 0x0165F7C4,
-				/*cl_cmds = 0x013EE1C0,*/
+				/*netchan_remoteAddress =*/ 0x0165F7C4,	// "cl_maxpackets"
+				/*cl_cmds = 0x013EE1C0,*/				// "CL_GetUserCmd: %i >= %i"
 				/*cl_cmdNumber = 0x013EE8C0,*/
 				/*fs_searchpaths =*/ 0x09DAA94,			// "Filesystem call made without initialization\n"
 				/*tr_numImages =*/ 0x0178A684,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
@@ -109,7 +109,7 @@ namespace off
 			}
 		},
 
-		// 2.79.0
+		// ET:Legacy 2.79.0
 		{
 			/*m_Timedatestamp =*/ 0x61C4B0CA,
 
@@ -117,21 +117,47 @@ namespace off
 			{
 				/*refExport =*/ 0x0297C6C0,				// "----- Initializing Renderer ----\n", "Couldn't initialize refresh", "cl_paused"
 				/*VM_DllSyscall = 0x00026EA0,*/			// "VM_Create: bad parms", 8B ? ? ? ? ? 8D ? 24 ? ? FF ? 04 83 C4 04 C3
-				/*VM_Call_vmMain =*/ 0x00026D0B,
-				/*SCR_UpdateScreen =*/ 0x00044570,
+				/*VM_Call_vmMain =*/ 0x00026D0B,		// "VM_Call( %i )\n"
+				/*SCR_UpdateScreen =*/ 0x00044570,		// "cmd say "
 				/*currentVM =*/ 0x005914D8,
-				/*cgvm =*/ 0x0297C78C,
+				/*cgvm =*/ 0x0297C78C,					// "VM_Create on cgame failed"
 				/*kbuttons =*/ 0x005A04F0,				// "+left" => handler => push offset; call IN_KeyDown
-				/*viewangles =*/ 0x02B91C68,
-				/*clc_challenge =*/ 0x02AF3D38,
-				/*reliableCommands =*/ 0x02AF3D4C,
+				/*viewangles =*/ 0x02B91C68,			// "%f : %f\n"
+				/*clc_challenge =*/ 0x02AF3D38,			// "challenge: %d\n"
+				/*reliableCommands =*/ 0x02AF3D4C,		// "Client command overflow"
 				/*clc_reliableSequence =*/ 0x02AF3D44,
-				/*netchan_remoteAddress =*/ 0x02B7BE30,
-				/*cl_cmds = 0x02B913A0,*/
+				/*netchan_remoteAddress =*/ 0x02B7BE30,	// "cl_maxpackets"
+				/*cl_cmds = 0x02B913A0,*/				// "CL_GetUserCmd: %i >= %i"
 				/*cl_cmdNumber = 0x02B91AA0,*/
 				/*fs_searchpaths =*/ 0x0053F2C4,		// "Filesystem call made without initialization\n"
 				/*tr_numImages =*/ 0x031B050C,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x031B0510,
+			}
+		},
+
+		// RTCW MP Pro 1.4 (Not working yet, only for testing)
+		{
+			/*m_Timedatestamp =*/ 0x613E28A2,
+
+			/*Offsets =*/
+			{
+				/*refExport =*/ 0x00FAF080,				// "----- Initializing Renderer ----\n", "Couldn't initialize refresh", "cl_paused"
+				/*VM_DllSyscall = 0x0043BDC0,*/			// "VM_Create: bad parms", 8B ? ? ? ? ? 8D ? 24 ? ? FF ? 04 83 C4 04 C3
+				/*VM_Call_vmMain =*/ 0x0043BA08,		// "VM_Call( %i )\n"
+				/*SCR_UpdateScreen =*/ 0x00414870,		// "cmd say "
+				/*currentVM =*/ 0x00AA1008,
+				/*cgvm =*/ 0x000FAF108,					// "VM_Create on cgame failed"
+				/*kbuttons =*/ 0x008BA818,				// "+left" => handler => push offset; call IN_KeyDown
+				/*viewangles =*/ 0x010CAEB4,			// "%f : %f\n"
+				/*clc_challenge =*/ 0x01030FEC,			// "challenge: %d\n"
+				/*reliableCommands =*/ 0x01031000,		// "Client command overflow"
+				/*clc_reliableSequence =*/ 0x01030FF8,
+				/*netchan_remoteAddress =*/ 0x010B40A4,	// "cl_maxpackets"
+				/*cl_cmds = 0x010CA630,*/				// "CL_GetUserCmd: %i >= %i"
+				/*cl_cmdNumber = 0x010CAD30,*/
+				/*fs_searchpaths =*/ 0x00A6F800,		// "Filesystem call made without initialization\n"
+				/*tr_numImages =*/ 0x01230794,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
+				/*tr_images =*/ 0x01230798,
 			}
 		}
 	};
