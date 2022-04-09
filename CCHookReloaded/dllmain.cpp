@@ -1123,6 +1123,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			}
 		}
 
+		// Player ESP
 		for (int i = 0; i < MAX_CLIENTS; i++)
 		{
 			auto &ci = cgs_clientinfo[i];
@@ -1134,6 +1135,9 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			if (ci.teamNum == localClient.teamNum)
 				continue;
 			if (ci.flags & EF_DEAD)
+				continue;
+
+			if (VectorDistance(cg_refdef.vieworg, ci.interOrigin) > cfg.maxEspDistance)
 				continue;
 
 
@@ -1219,7 +1223,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 				float x, y;
 				if (ui::WorldToScreen(feetAnchor, &x, &y))
-					ui::DrawText(x, y, 0.14f, 0.14f, colorRed, ci.name, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
+					ui::DrawText(x, y, 0.14f, 0.14f, colorWhite, ci.name, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
 			}
 		}
 
@@ -1231,6 +1235,9 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			if (ent.number < 0 || ent.number >= MAX_ENTITIES)
 				continue;
 			if (cg_entities[ent.number].reType == RT_MAX_REF_ENTITY_TYPE)
+				continue;
+
+			if (VectorDistance(cg_refdef.vieworg, cg_entities[ent.number].origin) > cfg.maxEspDistance)
 				continue;
 
 			if (cfg.missileEsp && ent.eType == ET_MISSILE)
