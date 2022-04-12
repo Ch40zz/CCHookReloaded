@@ -230,4 +230,8 @@ namespace eng
 
 		return entState->teamNum == TEAM_AXIS || entState->teamNum == TEAM_ALLIES;
 	}
+	bool IsValidTeam(int team)
+	{
+		return team == TEAM_AXIS || team == TEAM_ALLIES;
+	}
 }

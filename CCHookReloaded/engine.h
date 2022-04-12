@@ -12,4 +12,5 @@ namespace eng
 	bool IsKeyActionActive(const char *action);
 	hitbox_t GetHeadHitbox(const SClientInfo &ci);
 	bool IsEntityArmed(const entityState_t* entState);
+	bool IsValidTeam(int team);
 }

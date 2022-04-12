@@ -1087,12 +1087,15 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 		// Enemy Spawn Timer
 		if (cfg.enemySpawnTimer)
 		{
-			team_t enemyTeam = team_t(localClient.teamNum ^ 0b11);
+			if (eng::IsValidTeam(localClient.teamNum))
+			{
+				team_t enemyTeam = team_t(localClient.teamNum ^ 0b11);
 
-			char enemyReinfTime[64];
-			sprintf_s(enemyReinfTime, XorString("%i"), eng::CG_CalculateReinfTime(enemyTeam));
-			ui::DrawBoxedText(630.0f, 137.0f, 0.18f, 0.18f, colorRed, enemyReinfTime, 
-				0.0f, 0, ITEM_TEXTSTYLE_NORMAL, ITEM_ALIGN_RIGHT, &media.limboFont1, colorMenuBg, colorMenuBo);
+				char enemyReinfTime[64];
+				sprintf_s(enemyReinfTime, XorString("%i"), eng::CG_CalculateReinfTime(enemyTeam));
+				ui::DrawBoxedText(630.0f, 137.0f, 0.18f, 0.18f, colorRed, enemyReinfTime, 
+					0.0f, 0, ITEM_TEXTSTYLE_NORMAL, ITEM_ALIGN_RIGHT, &media.limboFont1, colorMenuBg, colorMenuBo);
+			}
 		}
 
 		// Enemy Hit Sounds, Local Damage Sounds
@@ -1132,11 +1135,12 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 				continue;
 			if (i == localClient.id)
 				continue;
+			if (!eng::IsValidTeam(ci.teamNum))
+				continue;
 			if (ci.teamNum == localClient.teamNum)
 				continue;
 			if (ci.flags & EF_DEAD)
 				continue;
-
 			if (VectorDistance(cg_refdef.vieworg, ci.interOrigin) > cfg.maxEspDistance)
 				continue;
 
@@ -1319,6 +1323,8 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 					if (!ci.valid)
 						return false;
 					if (ci.id == localClient.id)
+						return false;
+					if (!eng::IsValidTeam(ci.teamNum))
 						return false;
 					if (ci.teamNum == localClient.teamNum)
 						return false;
