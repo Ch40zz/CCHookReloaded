@@ -73,6 +73,7 @@ struct SConfig
 	bool bodyBbox = false;
 	bool boneEsp = true;
 	bool nameEsp = false;
+	int nameEspMode = 0; // 0 = Anchor Feet, 1 = Anchor Head
 	bool missileEsp = true;
 	bool pickupEsp = true;
 	float maxEspDistance = FLT_MAX;

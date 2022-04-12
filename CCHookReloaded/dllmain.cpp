@@ -1143,31 +1143,34 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 				continue;
 			if (VectorDistance(cg_refdef.vieworg, ci.interOrigin) > cfg.maxEspDistance)
 				continue;
+			orientation_t orTmp;
+			if (!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_head")), intptr_t(&orTmp)))
+				continue;
 
 
 			// Head Bounding Box ESP
 			if (cfg.headBbox)
 			{
 				orientation_t orHead;
-				if (!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_head")), intptr_t(&orHead)))
-					continue;
+				if (VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_head")), intptr_t(&orHead)))
+				{
+					const auto &hitbox = eng::GetHeadHitbox(ci);
 
-				const auto &hitbox = eng::GetHeadHitbox(ci);
+					vec3_t mins, maxs;
+					VectorScale(hitbox.size, -0.5f, mins);
+					VectorScale(hitbox.size, +0.5f, maxs);
 
-				vec3_t mins, maxs;
-				VectorScale(hitbox.size, -0.5f, mins);
-				VectorScale(hitbox.size, +0.5f, maxs);
+					vec3_t offset;
+					VectorCopy(orHead.origin, offset);
+					VectorMA(offset, hitbox.offset[0], orHead.axis[0], offset);
+					VectorMA(offset, hitbox.offset[1], orHead.axis[1], offset);
+					VectorMA(offset, hitbox.offset[2], orHead.axis[2], offset);
 
-				vec3_t offset;
-				VectorCopy(orHead.origin, offset);
-				VectorMA(offset, hitbox.offset[0], orHead.axis[0], offset);
-				VectorMA(offset, hitbox.offset[1], orHead.axis[1], offset);
-				VectorMA(offset, hitbox.offset[2], orHead.axis[2], offset);
+					VectorAdd(mins, offset, mins);
+					VectorAdd(maxs, offset, maxs);
 
-				VectorAdd(mins, offset, mins);
-				VectorAdd(maxs, offset, maxs);
-
-				ui::DrawBox3D(mins, maxs, 1.0f, colorGreen);
+					ui::DrawBox3D(mins, maxs, 1.0f, colorGreen);
+				}
 			}
 
 
@@ -1188,46 +1191,61 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			if (cfg.boneEsp)
 			{
 				orientation_t orHead, orChest, orArmL, orArmR, orHandL, orHandR, orTorso, orHipsL, orHipsR, orLegL, orLegR, orFootL, orFootR;
-				if (!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_head")), intptr_t(&orHead)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_chest")), intptr_t(&orChest)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_armleft")), intptr_t(&orArmL)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_armright")), intptr_t(&orArmR)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_weapon2")), intptr_t(&orHandL)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_weapon")), intptr_t(&orHandR)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_torso")), intptr_t(&orTorso)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_bleft")), intptr_t(&orHipsL)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_bright")), intptr_t(&orHipsR)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_legleft")), intptr_t(&orLegL)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_legright")), intptr_t(&orLegR)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_footleft")), intptr_t(&orFootL)) ||
-					!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_footright")), intptr_t(&orFootR)))
-					continue;
-
-				ui::DrawLine3D(orHead.origin, orChest.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orChest.origin, orArmL.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orChest.origin, orArmR.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orArmL.origin, orHandL.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orArmR.origin, orHandR.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orChest.origin, orTorso.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orTorso.origin, orHipsL.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orTorso.origin, orHipsR.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orHipsL.origin, orLegL.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orHipsR.origin, orLegR.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orLegL.origin, orFootL.origin, 2.0f, colorGreen);
-				ui::DrawLine3D(orLegR.origin, orFootR.origin, 2.0f, colorGreen);
+				if (VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_head")), intptr_t(&orHead)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_chest")), intptr_t(&orChest)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_armleft")), intptr_t(&orArmL)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_armright")), intptr_t(&orArmR)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_weapon2")), intptr_t(&orHandL)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_weapon")), intptr_t(&orHandR)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_torso")), intptr_t(&orTorso)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_bleft")), intptr_t(&orHipsL)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_bright")), intptr_t(&orHipsR)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_legleft")), intptr_t(&orLegL)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_legright")), intptr_t(&orLegR)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_footleft")), intptr_t(&orFootL)) &&
+					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_footright")), intptr_t(&orFootR)))
+				{
+					ui::DrawLine3D(orHead.origin, orChest.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orChest.origin, orArmL.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orChest.origin, orArmR.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orArmL.origin, orHandL.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orArmR.origin, orHandR.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orChest.origin, orTorso.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orTorso.origin, orHipsL.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orTorso.origin, orHipsR.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orHipsL.origin, orLegL.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orHipsR.origin, orLegR.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orLegL.origin, orFootL.origin, 2.0f, colorGreen);
+					ui::DrawLine3D(orLegR.origin, orFootR.origin, 2.0f, colorGreen);
+				}
 			}
 
 
 			// Name ESP
 			if (cfg.nameEsp)
 			{
-				vec3_t feetAnchor;
-				VectorCopy(ci.interOrigin, feetAnchor);
-				feetAnchor[2] -= 30;
+				if (cfg.nameEspMode == 0)
+				{
+					vec3_t feetAnchor;
+					VectorCopy(ci.interOrigin, feetAnchor);
+					feetAnchor[2] -= 30.0f;
 
-				float x, y;
-				if (ui::WorldToScreen(feetAnchor, &x, &y))
-					ui::DrawText(x, y, 0.14f, 0.14f, colorWhite, ci.name, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
+					float x, y;
+					if (ui::WorldToScreen(feetAnchor, &x, &y))
+						ui::DrawText(x, y, 0.14f, 0.14f, colorWhite, ci.name, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
+				}
+				else
+				{
+					orientation_t orHead;
+					if (VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_head")), intptr_t(&orHead)))
+					{
+						orHead.origin[2] += 15.0f;
+
+						float x, y;
+						if (ui::WorldToScreen(orHead.origin, &x, &y))
+							ui::DrawText(x, y - 8.0f, 0.14f, 0.14f, colorWhite, ci.name, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
+					}
+				}
 			}
 		}
 
