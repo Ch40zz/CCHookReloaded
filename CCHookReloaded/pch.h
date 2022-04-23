@@ -4,6 +4,7 @@
 #define NODRAWTEXT
 #define _CRT_SECURE_NO_WARNINGS
 
+// Whether to display debug information. Undefine for release builds!
 #define USE_DEBUG
 
 // System includes

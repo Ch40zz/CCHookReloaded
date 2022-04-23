@@ -97,7 +97,7 @@ EMod InitializeMod()
 	media.pickupModels[9] =  DoSyscall(CG_R_REGISTERMODEL, XorString("models/weapons2/fg42/fg42.md3"));
 	media.pickupModels[10] = DoSyscall(CG_R_REGISTERMODEL, XorString("models/multiplayer/mauser/mauser_pickup.md3"));
 
-	XorS(coverShaderText, "coverShader\n\
+	XorS(coverShaderText, "%s\n\
 		{\n\
 			cull none\n\
 			deformVertexes wave 100 sin 1.5 0 0 0\n\
@@ -111,7 +111,7 @@ EMod InitializeMod()
 			}\n\
 		}\n");
 
-	XorS(plainShaderText, "plainShader\n\
+	XorS(plainShaderText, "%s\n\
 		{\n\
 			nomipmaps\n\
 			nofog\n\
@@ -128,7 +128,7 @@ EMod InitializeMod()
 			}\n\
 		}\n");
 
-	XorS(quadShaderText, "quadShader\n\
+	XorS(quadShaderText, "%s\n\
 		{\n\
 			deformVertexes wave 100 sin 3 0 0 0\n\
 			{\n\
@@ -142,7 +142,7 @@ EMod InitializeMod()
 			}\n\
 		}\n");
 
-	XorS(crystalShaderText, "crystalShader\n\
+	XorS(crystalShaderText, "%s\n\
 		{\n\
 			cull none\n\
 			deformVertexes wave 100 sin 2 0 0 0\n\
@@ -157,7 +157,7 @@ EMod InitializeMod()
 			}\n\
 		}\n");
 
-	XorS(plasticShaderText, "plasticShader\n\
+	XorS(plasticShaderText, "%s\n\
 		{\n\
 			deformVertexes wave 100 sin 0 0 0 0\n\
 			{\n\
@@ -167,7 +167,7 @@ EMod InitializeMod()
 			}\n\
 		}\n");
 
-	XorS(circleShaderText, "circleShader\n\
+	XorS(circleShaderText, "%s\n\
 		{\n\
 			polygonOffset\n\
 			{\n\
@@ -177,20 +177,11 @@ EMod InitializeMod()
 			}\n\
 		}");
 
-	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("coverShader"), coverShaderText.decrypt());
-	media.coverShader = DoSyscall(CG_R_REGISTERSHADER, XorString("coverShader"));
-
-	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("plainShader"), plainShaderText.decrypt());
-	media.plainShader = DoSyscall(CG_R_REGISTERSHADER, XorString("plainShader"));
-
-	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("quadShader"), quadShaderText.decrypt());
-	media.quadShader = DoSyscall(CG_R_REGISTERSHADER, XorString("quadShader"));
-
-	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("plasticShader"), plasticShaderText.decrypt());
-	media.plasticShader = DoSyscall(CG_R_REGISTERSHADER, XorString("plasticShader"));
-	
-	DoSyscall(CG_R_LOADDYNAMICSHADER, XorString("circleShader"), circleShaderText.decrypt());
-	media.circleShader = DoSyscall(CG_R_REGISTERSHADER, XorString("circleShader"));
+	media.coverShader = eng::RegisterAndLoadShader(coverShaderText.decrypt(), spoofSeed+0);
+	media.plainShader = eng::RegisterAndLoadShader(plainShaderText.decrypt(), spoofSeed+1);
+	media.quadShader = eng::RegisterAndLoadShader(quadShaderText.decrypt(), spoofSeed+2);
+	media.plasticShader = eng::RegisterAndLoadShader(plasticShaderText.decrypt(), spoofSeed+3);
+	media.circleShader = eng::RegisterAndLoadShader(circleShaderText.decrypt(), spoofSeed+4);
 
 	media.railCoreShader = DoSyscall(CG_R_REGISTERSHADERNOMIP, XorString("railCore"));
 	media.onFireShader = DoSyscall(CG_R_REGISTERSHADERNOMIP, XorString("entityOnFire1"));
@@ -1921,7 +1912,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 #ifdef USE_DEBUG
 		AllocConsole();
 		freopen(XorString("CONOUT$"), XorString("w"), stdout);
-		printf(XorString("Loaded CCHook:Reloaded!\n"));
+		printf(XorString("Loaded CCHook:Reloaded! Make sure to undefine `USE_DEBUG` for release builds.\n"));
 		printf(XorString("Waiting for game...\n"));
 #endif
 

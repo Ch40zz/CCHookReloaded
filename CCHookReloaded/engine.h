@@ -13,4 +13,5 @@ namespace eng
 	hitbox_t GetHeadHitbox(const SClientInfo &ci);
 	bool IsEntityArmed(const entityState_t* entState);
 	bool IsValidTeam(int team);
+	qhandle_t RegisterAndLoadShader(const char *shaderData, uint32_t seed);
 }

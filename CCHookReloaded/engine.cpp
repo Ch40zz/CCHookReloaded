@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "globals.h"
 #include "engine.h"
+#include "tools.h"
 
 #include "config.h"
 #include "offsets.h"
@@ -338,5 +339,17 @@ namespace eng
 	bool IsValidTeam(int team)
 	{
 		return team == TEAM_AXIS || team == TEAM_ALLIES;
+	}
+	qhandle_t RegisterAndLoadShader(const char *shaderData, uint32_t seed)
+	{
+		char shaderName[17] = {};
+		tools::RandomizeHexString(shaderName, std::size(shaderName) - 1, '\0', seed);
+
+		char newShaderData[1024];
+		if (sprintf_s(newShaderData, shaderData, shaderName) < 0)
+			return 0;
+
+		(void)DoSyscall(CG_R_LOADDYNAMICSHADER, shaderName, newShaderData);
+		return DoSyscall(CG_R_REGISTERSHADER, shaderName);
 	}
 }
