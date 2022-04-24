@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CCHookReloaded", "CCHookReloaded\CCHookReloaded.vcxproj", "{B1135B08-8BCB-4254-A3BF-274E41E49725}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CCInject", "CCInject\CCInject.vcxproj", "{489F7B01-5C7E-4BC1-BE39-BE8D2C0CC7E7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B1135B08-8BCB-4254-A3BF-274E41E49725} = {B1135B08-8BCB-4254-A3BF-274E41E49725}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
