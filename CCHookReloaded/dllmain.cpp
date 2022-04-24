@@ -1913,7 +1913,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 		AllocConsole();
 		freopen(XorString("CONOUT$"), XorString("w"), stdout);
 		printf(XorString("Loaded CCHook:Reloaded! Make sure to undefine `USE_DEBUG` for release builds.\n"));
-		printf(XorString("Waiting for game...\n"));
 #endif
 
 		srand(GetTickCount());
@@ -1923,7 +1922,17 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 			spoofSeed = GetTickCount() * rand();
 
 		if (!off::Init())
-			printf(XorString("[WARNING] Failed to recognize 'et.exe' version. Defaulting to 2.60b\n"));
+		{
+			printf(XorString("[WARNING] Failed to recognize 'et.exe' version. Defaulting to dynamic offsets.\n"));
+
+			if (!off::RetrieveDynamic())
+			{
+				printf(XorString("[ ERROR ] Failed to retrieve dynamic offsets!\n"));
+				return FALSE;
+			}
+		}
+
+		printf(XorString("Waiting for game...\n"));
 
 		// Make sure to hook even if we inject late and no DLL is loaded after us
 		LdrDllNotification(0, nullptr, nullptr);
