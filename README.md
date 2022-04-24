@@ -95,7 +95,7 @@ The game is driven by the OpenGL renderer.
 Screenshots are therefore also taken with OpenGL.
 To read the current displayed pixels, one can call `opengl32!glReadPixels()`.
 Luckily, this function is pretty easy to hook by swapping a .data pointer on Windows.
-OpenGL on Windows is allocating a big API dispatch table and storing the pointer to tht table via TLS (thread local storage).
+OpenGL on Windows is allocating a big API dispatch table and storing the pointer to that table via TLS (thread local storage).
 The cheat extracts this table address by disassembling the instructions at `glReadPixels`.
 After receiving the dispatch table address, we can easily swap out any function with our hook.
 The hook then proceeds to set a global boolean value, indicating that all rendering should be disabled.
