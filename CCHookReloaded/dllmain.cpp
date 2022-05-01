@@ -1031,10 +1031,6 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 	};
 	
 	intptr_t result = VmMainCall(id, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16);
-	
-	if (cfg.etproGuid && cfg.etproGuid[0]) etpro_SpoofGUID(cfg.etproGuid);
-	if (cfg.nitmodMac && cfg.nitmodMac[0]) nitmod_SpoofMAC(cfg.nitmodMac);
-
 
 	if (id == CG_DRAW_ACTIVE_FRAME)
 	{
@@ -1050,7 +1046,12 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 			// Reset patched images back to original
 			PatchLoadedImages(false);
+
+			old_reliableSequence = off::cur.clc_reliableSequence();
 		}
+
+		if (currentMod == EMod::EtPro &&  cfg.etproGuid && cfg.etproGuid[0]) etpro_SpoofGUID(cfg.etproGuid);
+		if (currentMod == EMod::Nitmod && cfg.nitmodMac && cfg.nitmodMac[0]) nitmod_SpoofMAC(cfg.nitmodMac);
 
 #ifdef USE_DEBUG
 		if (GetAsyncKeyState(VK_F9)&1)
