@@ -1852,8 +1852,8 @@ void hooked_EndFrame(int *frontEndMsec, int *backEndMsec)
 			fclose(etkey);
 		}
 
-		char reconnectCommand[64];
-		strcpy_s(reconnectCommand, XorString("net_port 27???; net_restart; vid_restart; reconnect"));
+		char reconnectCommand[96];
+		strcpy_s(reconnectCommand, XorString("pb_myguid; net_port 27???; net_restart; vid_restart; pb_myguid; reconnect"));
 		for (size_t i = 0; i < 3; i++)
 			reconnectCommand[i + 11] = '0' + (tools::Rand() % 10);
 
