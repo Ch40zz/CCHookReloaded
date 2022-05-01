@@ -7,6 +7,16 @@
 
 namespace tools
 {
+	static unsigned int s_Seed = 0;
+	int Rand()
+	{
+		return (((s_Seed = s_Seed * 214013L + 2531011L) >> 16) & 0x7fff);
+	}
+	void Srand(unsigned int seed)
+	{
+		s_Seed = seed;
+	}
+
 	uint8_t *FindPattern(uint8_t *start_pos, size_t search_len, const uint8_t *pattern, const char *mask)
 	{
 		for(uint8_t *region_it = start_pos; region_it < (start_pos + search_len); ++region_it)

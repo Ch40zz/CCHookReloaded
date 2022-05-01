@@ -1819,12 +1819,12 @@ void hooked_EndFrame(int *frontEndMsec, int *backEndMsec)
 	if (cfg.quickUnbanReconnect && GetAsyncKeyState(VK_F10)&1)
 	{
 		// Set new spoof seed to change etpro guid and mac address on reconnect
-		spoofSeed = GetTickCount() * rand();
+		spoofSeed = GetTickCount() * tools::Rand();
 
 		char newEtKey[32];
 		strcpy_s(newEtKey, XorString("0000001002"));
 		for (size_t i = 0; i < 18; i++)
-			newEtKey[i + 10] = '0' + (rand() % 10);
+			newEtKey[i + 10] = '0' + (tools::Rand() % 10);
 
 		char etDir[MAX_PATH + 1], backupPath[MAX_PATH + 1];
 		uint32_t len = GetModuleFileNameA(GetModuleHandleA(nullptr), etDir, sizeof(etDir));
@@ -1854,7 +1854,7 @@ void hooked_EndFrame(int *frontEndMsec, int *backEndMsec)
 		char reconnectCommand[64];
 		strcpy_s(reconnectCommand, XorString("net_port 27???; net_restart; vid_restart; reconnect"));
 		for (size_t i = 0; i < 3; i++)
-			reconnectCommand[i + 11] = '0' + (rand() % 10);
+			reconnectCommand[i + 11] = '0' + (tools::Rand() % 10);
 
 		HWND consoleTextbox = FindWindowExA(FindWindowA(nullptr, 
 			off::cur.IsEtLegacy() ? XorString("ET: Legacy Console") : XorString("ET Console")), nullptr, XorString("Edit"), 0);
@@ -1938,11 +1938,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 		printf(XorString("Loaded CCHook:Reloaded! Make sure to undefine `USE_DEBUG` for release builds.\n"));
 #endif
 
-		srand(GetTickCount());
+		tools::Srand(GetTickCount() * GetCurrentProcessId());
 
 		spoofSeed = cfg.spoofSeed;
 		if (!spoofSeed)
-			spoofSeed = GetTickCount() * rand();
+			spoofSeed = GetTickCount() * tools::Rand();
 
 		if (!off::Init())
 		{
