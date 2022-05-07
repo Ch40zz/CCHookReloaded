@@ -16,6 +16,7 @@
 #include <array>
 #include <vector>
 #include <unordered_map>
+#include <functional>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -586,8 +587,14 @@ struct etpro_payload_E_t
 
 
 // Static media and data
-static const vec4_t colorMenuBg = { 0.16f, 0.2f, 0.17f, 0.8f };
-static const vec4_t colorMenuBo = { 0.50f, 0.5f, 0.50f, 0.5f };
+static const vec4_t colorMenuBg     = { 0.16f, 0.20f, 0.17f, 0.80f };
+static const vec4_t colorMenuBgHl   = { 0.36f, 0.40f, 0.37f, 0.80f };
+static const vec4_t colorMenuBgPr   = { 0.06f, 0.10f, 0.07f, 0.90f };
+static const vec4_t colorMenuBo     = { 0.50f, 0.50f, 0.50f, 0.50f };
+static const vec4_t colorMenuBoHl   = { 0.60f, 0.60f, 0.60f, 0.50f };
+static const vec4_t colorMenuBoPr   = { 0.40f, 0.40f, 0.40f, 0.60f };
+static const vec4_t colorCheckbox   = { 0.90f, 0.90f, 0.90f, 0.90f };
+static const vec4_t colorCheckboxHl = { 1.00f, 1.00f, 1.00f, 1.00f };
 
 struct hitbox_def_t
 {

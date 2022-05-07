@@ -2,8 +2,12 @@
 #include "globals.h"
 #include "ui.h"
 
+#include "config.h"
+
 namespace ui
 {
+	static int16_t btnDelete = 0, btnMouseL = 0;
+
 	void AdjustFrom640(float *x, float *y, float *w, float *h)
 	{
 		*x *= cg_glconfig.vidWidth / 640.0f;
@@ -71,7 +75,7 @@ namespace ui
 		AdjustFrom640(&x, &y, &w, &h);
 
 		DoSyscall(CG_R_SETCOLOR, color);
-		DoSyscall(CG_R_DRAWSTRETCHPIC, x, y, w, h, 0.0f, 0.0f, 0.0f, 1.0f, shader);
+		DoSyscall(CG_R_DRAWSTRETCHPIC, x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f, shader);
 		DoSyscall(CG_R_SETCOLOR, nullptr);
 	}
 	void DrawBox3D(const vec3_t mins, const vec3_t maxs, float f, const vec4_t color)
@@ -258,5 +262,154 @@ namespace ui
 		DoSyscall(CG_R_SETCOLOR, color);
 		DoSyscall(CG_R_DRAWSTRETCHPIC, x - w/2.0f, y - h/2.0f, w, h, 0.0f, 0.0f, 1.0f, 1.0f, shader);
 		DoSyscall(CG_R_SETCOLOR, nullptr);
+	}
+
+	void DrawButton(float x, float y, float w, float h, const char *text, std::function<void()> callback, int *currentTab = nullptr, int myTab = 0)
+	{
+		const bool IsHovering = cgDC_cursorx >= x && cgDC_cursorx < x + w &&
+								cgDC_cursory >= y && cgDC_cursory < y + h;
+
+		const bool DoDrawHovering = IsHovering || (currentTab && *currentTab == myTab);
+
+		const vec_t* bgColor = DoDrawHovering
+			? (btnMouseL < 0 && IsHovering)
+				? colorMenuBgPr
+				: colorMenuBgHl
+			: colorMenuBg;
+
+		const vec_t* boColor = DoDrawHovering 
+			? (btnMouseL < 0 && IsHovering)
+				? colorMenuBoPr
+				: colorMenuBoHl
+			: colorMenuBo;
+
+		const int flags = DoDrawHovering 
+			? (btnMouseL < 0 && IsHovering)
+				? ITEM_TEXTSTYLE_SHADOWEDMORE
+				: ITEM_TEXTSTYLE_SHADOWED
+			: 0;
+
+		DrawBoxBordered2D(x, y, w, h, bgColor, boColor, media.whiteShader);
+		DrawText(x + w/2.0f, y + h/2.0f, 0.14f, 0.14f, colorWhite, 
+			text, 0.0f, 0, flags, ITEM_ALIGN_CENTER2, &media.limboFont2);
+
+		if (IsHovering && (btnMouseL & 1))
+		{
+			if (currentTab)
+				*currentTab = myTab;
+
+			if (callback)
+				callback();
+		}
+	}
+	void DrawCheckbox(float x, float y, const char *text, bool *state)
+	{
+		float textW, textH;
+		SizeText(0.14f, 0.14f, text, 0, &media.limboFont2, &textW, &textH);
+
+		const int w = 9, h = 9;
+		const bool IsHovering = cgDC_cursorx >= x && cgDC_cursorx < (x + w + 2.0f + textW) &&
+								cgDC_cursory >= y && cgDC_cursory < y + h;
+		const vec_t *color = IsHovering ? colorCheckboxHl : colorCheckbox;
+
+		DrawBox2D(x, y, w, h, color, *state ? media.checkboxChecked : media.checkboxUnchecked);
+		DrawText(x + w + 2.0f, y + h/2 - textH/2 + 0.5, 0.14f, 0.14f, color, text, 0.0f, 0, 0, ITEM_ALIGN_LEFT, &media.limboFont2);
+
+		if (IsHovering && (btnMouseL & 1))
+			*state ^= 1;
+	}
+	void DrawMenu()
+	{
+		const int menuSizeX = 245;
+		const int menuSizeY = 150;
+		const int menuX = 320 - menuSizeX/2;
+		const int menuY = 240 - menuSizeY/2;
+
+		static int currentTab = 0;
+
+		// DoSyscall(CG_KEY_ISDOWN, K_MOUSE1)?
+		btnDelete = GetAsyncKeyState(VK_DELETE);
+		btnMouseL = GetAsyncKeyState(VK_LBUTTON);
+
+		DrawBoxedText(10.0f, 10.0f, 0.16f, 0.16f, colorWhite, XorString("^1CC^7Hook^1:^9Reloaded"), 
+			0.0f, 0, ITEM_TEXTSTYLE_NORMAL, ITEM_ALIGN_LEFT, &media.limboFont1, colorMenuBg, colorMenuBo);
+
+		if ((btnDelete & 1) && !(DoSyscall(CG_KEY_GETCATCHER) & (KEYCATCH_CONSOLE | KEYCATCH_UI)))
+		{
+			showMenu = !showMenu;
+
+			// Disable user input block and mouse capturing
+			if (!showMenu)
+				DoSyscall(CG_KEY_SETCATCHER, DoSyscall(CG_KEY_GETCATCHER) & ~(KEYCATCH_MESSAGE | KEYCATCH_CGAME));
+		}
+
+		if (!showMenu)
+			return;
+
+		// Block user input for CGame and capture mouse move events
+		DoSyscall(CG_KEY_SETCATCHER, DoSyscall(CG_KEY_GETCATCHER) | KEYCATCH_CGAME | KEYCATCH_MESSAGE);
+
+
+		DrawBoxBordered2D(menuX, menuY, menuSizeX, menuSizeY, colorMenuBg, colorMenuBo, media.whiteShader);
+		DrawBox2D(menuX, menuY, menuSizeX, 12.0f, colorMenuBg, media.whiteShader);
+		DrawText(menuX + menuSizeX/2.0f, menuY + 3.5f, 0.16f, 0.16f, colorWhite, 
+			XorString("^1CC^7Hook^1:^9Reloaded"), 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, ITEM_ALIGN_CENTER, &media.limboFont1);
+		DrawBox2D(menuX, menuY + 12, menuSizeX, 0.5f, colorMenuBo, media.whiteShader);
+
+		DrawButton(menuX + 5,   menuY + 17, 55, 10, XorString("Aimbot"), nullptr, &currentTab, 0);
+		DrawButton(menuX + 65,  menuY + 17, 55, 10, XorString("Visuals"), nullptr, &currentTab, 1);
+		DrawButton(menuX + 125, menuY + 17, 55, 10, XorString("ESP"), nullptr, &currentTab, 2);
+		DrawButton(menuX + 185, menuY + 17, 55, 10, XorString("Misc"), nullptr, &currentTab, 3);
+
+		DrawBoxBordered2D(menuX + 5, menuY + 31, menuSizeX - 10, menuSizeY - 35, colorMenuBg, colorMenuBo, media.whiteShader);
+
+		switch (currentTab)
+		{
+		case 0: // Aimbot
+			DrawCheckbox(menuX + 10, menuY + 35, XorString("Aimbot Enabled"), &cfg.aimbotEnabled);
+			DrawCheckbox(menuX + 10, menuY + 45, XorString("Sticky Aim"), &cfg.aimbotStickyAim);
+			DrawCheckbox(menuX + 10, menuY + 55, XorString("Sticky Auto-Reset"), &cfg.aimbotStickyAutoReset);
+			DrawCheckbox(menuX + 10, menuY + 65, XorString("Lock Viewangles"), &cfg.aimbotLockViewangles);
+			DrawCheckbox(menuX + 10, menuY + 75, XorString("Autoshoot"), &cfg.aimbotAutoshoot);
+			DrawCheckbox(menuX + 10, menuY + 85, XorString("Anti-Lagcompensation"), &cfg.aimbotAntiLagCompensation);
+			DrawCheckbox(menuX + 10, menuY + 95, XorString("Human Aim"), &cfg.aimbotHumanAim);
+			break;
+		case 1: // Visuals
+			DrawCheckbox(menuX + 10, menuY + 35, XorString("Scoped Walk"), &cfg.scopedWalk);
+			DrawCheckbox(menuX + 10, menuY + 45, XorString("No Scope-FoV"), &cfg.noScopeFov);
+			DrawCheckbox(menuX + 10, menuY + 55, XorString("No Scope-Blackout"), &cfg.noScopeBlackout);
+			DrawCheckbox(menuX + 10, menuY + 65, XorString("Bullet Tracers"), &cfg.bulletTracers);
+			DrawCheckbox(menuX + 10, menuY + 75, XorString("Grenade Trajectory"), &cfg.grenadeTrajectory);
+			DrawCheckbox(menuX + 10, menuY + 85, XorString("No Damage Feedback"), &cfg.noDamageFeedback);
+			DrawCheckbox(menuX + 10, menuY + 95, XorString("No Camera Shake"), &cfg.noCamExplosionShake);
+			DrawCheckbox(menuX + 10, menuY + 105, XorString("No Smoke"), &cfg.noSmoke);
+			DrawCheckbox(menuX + 10, menuY + 115, XorString("No Foliage"), &cfg.noFoliage);
+			DrawCheckbox(menuX + 10, menuY + 125, XorString("No Weather"), &cfg.noWeather);
+
+			DrawCheckbox(menuX + 120, menuY + 35, XorString("Pickup Chams"), &cfg.pickupChams);
+			DrawCheckbox(menuX + 120, menuY + 45, XorString("Missile Chams"), &cfg.missileChams);
+			DrawCheckbox(menuX + 120, menuY + 55, XorString("Player Chams"), &cfg.playerChams);
+			DrawCheckbox(menuX + 120, menuY + 65, XorString("Player Outline"), &cfg.playerOutlineChams);
+			DrawCheckbox(menuX + 120, menuY + 75, XorString("Player Corpse"), &cfg.playerCorpseChams);
+			break;
+		case 2: // ESP
+			DrawCheckbox(menuX + 10, menuY + 35, XorString("Head BBox"), &cfg.headBbox);
+			DrawCheckbox(menuX + 10, menuY + 45, XorString("Body BBox"), &cfg.bodyBbox);
+			DrawCheckbox(menuX + 10, menuY + 55, XorString("Bone ESP"), &cfg.boneEsp);
+			DrawCheckbox(menuX + 10, menuY + 65, XorString("Name ESP"), &cfg.nameEsp);
+			DrawCheckbox(menuX + 10, menuY + 75, XorString("Missile ESP"), &cfg.missileEsp);
+			DrawCheckbox(menuX + 10, menuY + 85, XorString("Missile Radius"), &cfg.missileRadius);
+			DrawCheckbox(menuX + 10, menuY + 95, XorString("Pickup ESP"), &cfg.pickupEsp);
+			break;
+		case 3: // Misc
+			DrawCheckbox(menuX + 10, menuY + 35, XorString("Spectator Warning"), &cfg.spectatorWarning);
+			DrawCheckbox(menuX + 10, menuY + 45, XorString("Enemy Spawntimer"), &cfg.enemySpawnTimer);
+			DrawCheckbox(menuX + 10, menuY + 55, XorString("Custom Damage Sounds"), &cfg.customDmgSounds);
+			DrawCheckbox(menuX + 10, menuY + 65, XorString("Quick Unban-Reconnect"), &cfg.quickUnbanReconnect);
+			DrawCheckbox(menuX + 10, menuY + 75, XorString("Clean Screenshots"), &cfg.cleanScreenshots);
+			break;
+		}
+
+		ui::DrawBox2D(cgDC_cursorx, cgDC_cursory, 32, 32, colorWhite, media.cursorIcon);
 	}
 }

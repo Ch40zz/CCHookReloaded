@@ -80,4 +80,4 @@ struct SConfig
 	float maxEspDistance = FLT_MAX;
 };
 
-inline const SConfig cfg;
+inline SConfig cfg;

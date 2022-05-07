@@ -13,4 +13,6 @@ namespace ui
 	void DrawText(float x, float y, float scalex, float scaley, const vec4_t color, const char *text, float adjust, int limit, int style, int align, const fontInfo_t *font);
 	void DrawBoxedText(float x, float y, float scalex, float scaley, const vec4_t textColor, const char *text, float adjust, int limit, int style, int align, const fontInfo_t *font, const vec4_t bgColor, const vec4_t boColor);
 	void DrawIcon(float x, float y, float w, float h, const vec4_t color, qhandle_t shader);
+
+	void DrawMenu();
 }

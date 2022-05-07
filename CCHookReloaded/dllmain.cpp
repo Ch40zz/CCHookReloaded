@@ -203,6 +203,9 @@ EMod InitializeMod()
 	media.thompsonIcon = DoSyscall(CG_R_REGISTERSHADER, XorString("icons/iconw_thompson_1_select.tga"));
 	media.stenIcon = DoSyscall(CG_R_REGISTERSHADER, XorString("icons/iconw_sten_1_select.tga"));
 	media.fg42Icon = DoSyscall(CG_R_REGISTERSHADER, XorString("icons/iconw_fg42_1_select.tga"));
+	media.cursorIcon = DoSyscall(CG_R_REGISTERSHADER, XorString("ui/assets/3_cursor3.tga"));
+	media.checkboxChecked = DoSyscall(CG_R_REGISTERSHADER, XorString("ui/assets/check.tga"));
+	media.checkboxUnchecked = DoSyscall(CG_R_REGISTERSHADER, XorString("ui/assets/check_not.tga"));
 
 
 	// Ensure "pak->referenced" is set back to 0 again after PAK was used
@@ -1032,7 +1035,23 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 	
 	intptr_t result = VmMainCall(id, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16);
 
-	if (id == CG_DRAW_ACTIVE_FRAME)
+	if (id == CG_MOUSE_EVENT)
+	{
+		const int dx = a1;
+		const int dy = a2;
+
+		if (showMenu)
+		{
+			cgDC_cursorx += dx;
+			if (cgDC_cursorx < 0) cgDC_cursorx = 0;
+			if (cgDC_cursorx > 640) cgDC_cursorx = 640;
+
+			cgDC_cursory += dy;
+			if (cgDC_cursory < 0) cgDC_cursory = 0;
+			if (cgDC_cursory > 480) cgDC_cursory = 480;
+		}
+	}
+	else if (id == CG_DRAW_ACTIVE_FRAME)
 	{
 		const int serverTime = a1;
 
@@ -1066,9 +1085,6 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			return result;
 
 		auto &localClient = cgs_clientinfo[cg_snapshot.ps.clientNum];
-
-		ui::DrawBoxedText(10.0f, 10.0f, 0.16f, 0.16f, colorWhite, XorString("^1CC^7Hook^1:^9Reloaded"), 
-			0.0f, 0, ITEM_TEXTSTYLE_NORMAL, ITEM_ALIGN_LEFT, &media.limboFont1, colorMenuBg, colorMenuBo);
 
 		// Spectator Warning
 		if (cfg.spectatorWarning)
@@ -1694,6 +1710,8 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 		for (size_t i = 0; i < std::size(cg_entities); i++)
 			cg_entities[i].reType = RT_MAX_REF_ENTITY_TYPE;
+
+		ui::DrawMenu();
 	}
 
 	return result;
