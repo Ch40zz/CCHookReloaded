@@ -972,11 +972,11 @@ void __fastcall hooked_glReadPixels(void *_this, void *edx, int x, int y, int wi
 
 	disableRendering = true;
 
-	off::cur.SCR_UpdateScreen();
-	off::cur.SCR_UpdateScreen();
-	off::cur.SCR_UpdateScreen();
-	off::cur.SCR_UpdateScreen();
-	off::cur.SCR_UpdateScreen();
+	off::cur.SCR_UpdateScreen()();
+	off::cur.SCR_UpdateScreen()();
+	off::cur.SCR_UpdateScreen()();
+	off::cur.SCR_UpdateScreen()();
+	off::cur.SCR_UpdateScreen()();
 
 	orig_glReadPixels(_this, x, y, width, height, format, type, pixels);
 
