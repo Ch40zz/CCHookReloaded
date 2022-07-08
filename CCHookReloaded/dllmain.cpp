@@ -1407,7 +1407,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 							VectorAdd(maxs, offset, maxs);
 
 							// SnapVector(ent->s.pos.trBase + ent->client->ps.viewheight)
-							if (eng::IsBoxVisible(cg_refdef.vieworg, mins, maxs, 0.1f, aimPos))
+							if (eng::IsBoxVisible(cg_refdef.vieworg, mins, maxs, cfg.aimbotHeadBoxTraceStep, aimPos))
 								return true;
 						}
 						else
@@ -1422,7 +1422,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 							VectorAdd(mins, origin, mins);
 							VectorAdd(maxs, origin, maxs);
 
-							if (eng::IsBoxVisible(cg_refdef.vieworg, mins, maxs, 0.1f, aimPos))
+							if (eng::IsBoxVisible(cg_refdef.vieworg, mins, maxs, cfg.aimbotBodyBoxTraceStep, aimPos))
 								return true;
 						}
 					}

@@ -212,7 +212,7 @@ namespace eng
 			abs(maxs[2] - mins[2])
 		};
 
-		for (float sd = 0.1f; sd < 0.99f; sd += 0.1f)
+		for (float sd = step; sd < 0.99f; sd += step)
 		{
 			vec3_t scaledMins, scaledMaxs;
 			VectorScale(boxSize, -sd/2.0f, scaledMins);

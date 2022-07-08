@@ -51,6 +51,8 @@ struct SConfig
 	float aimbotHumanFovMaxX = 5.0f;
 	float aimbotHumanFovMaxY = 10.0f;
 	float aimbotHumanSpeed = 0.0666f;
+	float aimbotHeadBoxTraceStep = 0.5f;
+	float aimbotBodyBoxTraceStep = 0.3f;
 
 
 	// Spoofer

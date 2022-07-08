@@ -132,6 +132,8 @@ namespace off
 		COffsets(uint32_t timedatestamp, const SOffsets &offsets)
 			: m_Timedatestamp(timedatestamp)
 			, m_Offsets(offsets)
+			, m_IsRelative(false)
+			, m_ImageBase(0)
 		{
 		}
 

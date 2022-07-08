@@ -10,6 +10,7 @@
 // System includes
 #include <WinSock2.h>
 #include <windows.h>
+#include <winternl.h>
 #include <intrin.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -45,13 +46,6 @@ extern "C" intptr_t __fastcall SpoofCall16(uintptr_t spoofed_retaddr, uintptr_t 
 
 
 // Missing Windows structs
-typedef struct _LSA_UNICODE_STRING
-{
-	USHORT Length;
-	USHORT MaximumLength;
-	PWSTR  Buffer;
-} LSA_UNICODE_STRING, *PLSA_UNICODE_STRING, UNICODE_STRING, *PUNICODE_STRING;
-
 typedef union _LDR_DLL_NOTIFICATION_DATA
 {
 	ULONG Flags;					//Reserved.
