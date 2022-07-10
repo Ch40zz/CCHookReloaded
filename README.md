@@ -10,6 +10,7 @@ This is the only cheat I know of that does not patch **any** read-only memory or
 
 ## Usage
 Modify `config.h` to your liking. Many of the config values cannot be changed at runtime and are statically compiled into the binary.
+Copy `cch.pk3` into your `etmain` folder and make sure to rename it. Set the new name in the config (`pakName`) without the `.pk3` extension.
 Ensure that `USE_DEBUG` macro is not defined in `pch.h` if you don't want to debug the cheat. This will significantly lower detection risk.
 Compile the project (Visual Studio 2022, Windows 10 SDK). It will yield 2 binaries in the ``Release`` output folder:
 - `CCHookReloaded.dll`: actual cheat DLL which has to be injected into the game
