@@ -7,6 +7,21 @@ This cheat is the result of a previous Proof-of-Concept made to showcase an alte
 The rest of the cheat then followed the same rules to stay undetected, without compromising the ease of use of engine functions.
 This is the only cheat I know of that does not patch **any** read-only memory or leaves any other nasty detections such as spawned threads or incorrectly implemented hooks.
 
+
+## Usage
+Modify `config.h` to your liking. Many of the config values cannot be changed at runtime and are statically compiled into the binary.
+Ensure that `USE_DEBUG` macro is not defined in `pch.h` if you don't want to debug the cheat. This will significantly lower detection risk.
+Compile the project (Visual Studio 2022, Windows 10 SDK). It will yield 2 binaries in the ``Release`` output folder:
+- `CCHookReloaded.dll`: actual cheat DLL which has to be injected into the game
+- `CCHookReloaded.exe`: LdrLoadDll injector to start the game and inject the DLL
+
+**Please make sure to rename both files before launching the injector to avoid anti-cheat detections!**
+  
+When the game has been started and the cheat has been injected with the injector, join any server.
+The cheat will be loaded upon mod initialization. To enable/disable cheat features, you can now open the WIP ingame menu by pressing the `DEL` key on your keyboard:
+![Ingame Menu](https://i.imgur.com/TyjYIr1.png)
+
+
 ## Hooking
 The cheat utilizes the `LdrRegisterDllNotification()` API to gain code execution on every DLL load/unload without the need to create any threads.
 Because every mod will load their own new copy of `cgame_mp_x86.dll` we will always have the perfect timing to place our hooks right after the mod loaded.
