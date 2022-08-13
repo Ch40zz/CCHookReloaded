@@ -3,7 +3,6 @@
 struct SConfig
 {
 	// General
-	bool spoofVmMainRetAddress = true; // Doesn't work for ET:Legacy yet
 	bool cleanScreenshots = true;
 	const char *pakName = "cch";
 

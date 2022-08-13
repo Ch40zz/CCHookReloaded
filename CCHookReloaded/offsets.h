@@ -84,6 +84,13 @@ namespace off
 	class COffsets
 	{
 	public:
+		enum class EVmSpoofType
+		{
+			None,
+			Call12,
+			Call12_Steam,
+		};
+
 		struct SOffsets
 		{
 			uintptr_t refExport;
@@ -117,6 +124,7 @@ namespace off
 
 	private:
 		uint32_t m_Timedatestamp;
+		EVmSpoofType m_VmSpoofType;
 		SOffsets m_Offsets;
 
 		bool m_IsRelative;
@@ -129,8 +137,9 @@ namespace off
 		}
 
 	public:
-		COffsets(uint32_t timedatestamp, const SOffsets &offsets)
+		COffsets(uint32_t timedatestamp, EVmSpoofType VmSpoofTyp, const SOffsets &offsets)
 			: m_Timedatestamp(timedatestamp)
+			, m_VmSpoofType(VmSpoofTyp)
 			, m_Offsets(offsets)
 			, m_IsRelative(false)
 			, m_ImageBase(0)
@@ -149,9 +158,20 @@ namespace off
 			return m_Offsets.IsValid();
 		}
 
+		bool UpdateOffsets(const SOffsets& offsets)
+		{
+			m_Offsets = offsets;
+			return m_Offsets.IsValid();
+		}
+
 		uint32_t Timedatestamp() const
 		{
 			return m_Timedatestamp;
+		}
+
+		EVmSpoofType VmSpoofType() const
+		{
+			return m_VmSpoofType;
 		}
 
 		bool IsEtLegacy() const
@@ -159,7 +179,7 @@ namespace off
 			return m_IsRelative;
 		}
 
-		uintptr_t GetRelImageBase()
+		uintptr_t GetRelImageBase() const
 		{
 			return m_IsRelative ? m_ImageBase : 0;
 		}
@@ -185,12 +205,14 @@ namespace off
 		// <Reserved for dynamic offsets>
 		{
 			/*m_Timedatestamp =*/ ~1ul, 
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::None,
 			/*Offsets =*/ {}
 		},
 
 		// ET 2.60b
 		{
 			/*m_Timedatestamp =*/ 0x445F5790,
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::Call12,
 
 			/*Offsets =*/
 			{
@@ -214,9 +236,37 @@ namespace off
 			}
 		},
 
+		// ET 2.60b (Steam)
+		{
+			/*m_Timedatestamp =*/ 0x60F7263B,
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::Call12_Steam,
+
+			/*Offsets =*/
+			{
+				/*refExport =*/ 0x0146D1C0,				// "----- Initializing Renderer ----\n", "Couldn't initialize refresh", "cl_paused"
+				/*VM_DllSyscall = 0x0043C2D0,*/			// "VM_Create: bad parms", 8B ? ? ? ? ? 8D ? 24 ? ? FF ? 04 83 C4 04 C3
+				/*VM_Call_vmMain =*/ 0x0043BF48,		// "VM_Call( %i )\n"
+				/*SCR_UpdateScreen =*/ 0x00414440,		// "cmd say "
+				/*currentVM =*/ 0x00A75338,
+				/*cgvm =*/ 0x0146D288,					// "VM_Create on cgame failed"
+				/*kbuttons =*/ 0x00894C38,				// "+left" => handler => push offset; call IN_KeyDown
+				/*viewangles =*/ 0x0160B048,			// "%f : %f\n"
+				/*clc_challenge =*/ 0x0156C568,			// "challenge: %d\n"
+				/*reliableCommands =*/ 0x0156C57C,		// "Client command overflow"
+				/*clc_reliableSequence =*/ 0x0156C574,
+				/*netchan_remoteAddress =*/ 0x015F5224,	// "cl_maxpackets"
+				/*cl_cmds = 0x00160A780,*/				// "CL_GetUserCmd: %i >= %i"
+				/*cl_cmdNumber = 0x00160AE80,*/
+				/*fs_searchpaths =*/ 0x0A43B64,			// "Filesystem call made without initialization\n"
+				/*tr_numImages =*/ 0x0017FD7E4,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
+				/*tr_images =*/ 0x0017FD7E8,
+			}
+		},
+
 		// RTCW MP Pro 1.4 (Not working yet, only for testing)
 		{
 			/*m_Timedatestamp =*/ 0x613E28A2,
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::None,
 
 			/*Offsets =*/
 			{
@@ -243,6 +293,7 @@ namespace off
 		// ET:Legacy 2.79.0
 		{
 			/*m_Timedatestamp =*/ 0x61C4B0CA,
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::None,
 
 			/*Offsets =*/
 			{
@@ -269,6 +320,7 @@ namespace off
 		// ET:Legacy 2.80.0
 		{
 			/*m_Timedatestamp =*/ 0x6251C920,
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::None,
 
 			/*Offsets =*/
 			{
@@ -421,7 +473,6 @@ namespace off
 		off.tr_numImages = FindSignature(tr_numImages, std::size(tr_numImages));
 		off.tr_images = FindSignature(tr_images, std::size(tr_images));
 
-		cur = COffsets(0, off);
-		return cur.Init();
+		return cur.UpdateOffsets(off);
 	}
 }

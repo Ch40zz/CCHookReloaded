@@ -40,6 +40,8 @@
 // Extern functions
 extern "C" intptr_t __fastcall SpoofCall12(uintptr_t spoofed_retaddr, uintptr_t target, intptr_t id, intptr_t a1, intptr_t a2, intptr_t a3, intptr_t a4, 
 	intptr_t a5, intptr_t a6, intptr_t a7, intptr_t a8, intptr_t a9, intptr_t a10, intptr_t a11, intptr_t a12, uintptr_t edi, uintptr_t esi, uintptr_t real_retaddr);
+extern "C" intptr_t __fastcall SpoofCall12_Steam(uintptr_t spoofed_retaddr, uintptr_t target, intptr_t id, intptr_t a1, intptr_t a2, intptr_t a3, intptr_t a4, intptr_t a5,
+	intptr_t a6, intptr_t a7, intptr_t a8, intptr_t a9, intptr_t a10, intptr_t a11, intptr_t a12, uintptr_t edi, uintptr_t esi, uintptr_t ebp, uintptr_t real_retaddr);
 extern "C" intptr_t __fastcall SpoofCall16(uintptr_t spoofed_retaddr, uintptr_t target, intptr_t id, intptr_t a1, intptr_t a2, intptr_t a3, intptr_t a4, 
 	intptr_t a5, intptr_t a6, intptr_t a7, intptr_t a8, intptr_t a9, intptr_t a10, intptr_t a11, intptr_t a12, intptr_t a13, intptr_t a14, intptr_t a15, 
 	intptr_t a16, uintptr_t edi, uintptr_t esi, uintptr_t real_retaddr);
