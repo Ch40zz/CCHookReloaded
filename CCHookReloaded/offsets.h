@@ -230,7 +230,7 @@ namespace off
 				/*netchan_remoteAddress =*/ 0x0165F7C4,	// "cl_maxpackets"
 				/*cl_cmds = 0x013EE1C0,*/				// "CL_GetUserCmd: %i >= %i"
 				/*cl_cmdNumber = 0x013EE8C0,*/
-				/*fs_searchpaths =*/ 0x09DAA94,			// "Filesystem call made without initialization\n"
+				/*fs_searchpaths =*/ 0x009DAA94,		// "Filesystem call made without initialization\n"
 				/*tr_numImages =*/ 0x0178A684,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x0178A688,
 			}
@@ -257,11 +257,38 @@ namespace off
 				/*netchan_remoteAddress =*/ 0x015F5224,	// "cl_maxpackets"
 				/*cl_cmds = 0x00160A780,*/				// "CL_GetUserCmd: %i >= %i"
 				/*cl_cmdNumber = 0x00160AE80,*/
-				/*fs_searchpaths =*/ 0x0A43B64,			// "Filesystem call made without initialization\n"
+				/*fs_searchpaths =*/ 0x00A43B64,		// "Filesystem call made without initialization\n"
 				/*tr_numImages =*/ 0x0017FD7E4,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x0017FD7E8,
 			}
 		},
+
+		// ET 2.60b (Microsoft Store)
+		{
+			/*m_Timedatestamp =*/ 0x62BE0F6C,
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::Call12_Steam,
+
+			/*Offsets =*/
+			{
+			/*refExport =*/ 0x0146D220,				// "----- Initializing Renderer ----\n", "Couldn't initialize refresh", "cl_paused"
+			/*VM_DllSyscall = 0x000043C2D0,*/			// "VM_Create: bad parms", 8B ? ? ? ? ? 8D ? 24 ? ? FF ? 04 83 C4 04 C3
+			/*VM_Call_vmMain =*/ 0x0043BF48,		// "VM_Call( %i )\n"
+			/*SCR_UpdateScreen =*/ 0x00414440,		// "cmd say "
+			/*currentVM =*/ 0x00A75398,
+			/*cgvm =*/ 0x0146D2E8,					// "VM_Create on cgame failed"
+			/*kbuttons =*/ 0x00894C98,				// "+left" => handler => push offset; call IN_KeyDown
+			/*viewangles =*/ 0x0160B0A8,			// "%f : %f\n"
+			/*clc_challenge =*/ 0x0156C5C8,			// "challenge: %d\n"
+			/*reliableCommands =*/ 0x0156C5DC,		// "Client command overflow"
+			/*clc_reliableSequence =*/ 0x0156C5D4,
+			/*netchan_remoteAddress =*/ 0x015F5284,	// "cl_maxpackets"
+			/*cl_cmds = 0x0160A7E0,*/				// "CL_GetUserCmd: %i >= %i"
+			/*cl_cmdNumber = 0x0160AEE0,*/
+			/*fs_searchpaths =*/ 0x00A43BC4,		// "Filesystem call made without initialization\n"
+			/*tr_numImages =*/ 0x0017FD844,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
+			/*tr_images =*/ 0x0017FD848,
+		}
+	},
 
 		// RTCW MP Pro 1.4 (Not working yet, only for testing)
 		{
