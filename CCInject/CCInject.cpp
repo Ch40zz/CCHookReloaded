@@ -95,7 +95,7 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 		ofn.nMaxFile = std::size(etExePath);
 		ofn.lpstrFilter = L"All Files (*.*)\0*.*\0Executable Files (*.exe)\0*.exe\0";
 		ofn.nFilterIndex = 2;
-		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOTESTFILECREATE | OFN_READONLY | OFN_ENABLESIZING;
 		if (!GetOpenFileNameW(&ofn))
 			return 1;
 
