@@ -1,6 +1,6 @@
 # CCHook:Reloaded - A modern, mod independent open source cheat for Enemy Territory
 
-[![CCHookReloaded](https://yt-embed.herokuapp.com/embed?v=JvmvVpG1D1Y)](https://www.youtube.com/watch?v=JvmvVpG1D1Y "CCHook:Reloaded")
+[![CCHookReloaded](https://i.imgur.com/OBNczRr.png)](https://www.youtube.com/watch?v=JvmvVpG1D1Y "CCHook:Reloaded")
 
 ## General
 This cheat is the result of a previous Proof-of-Concept made to showcase an alternative way to hook the Quake VM system in an undetected way.
