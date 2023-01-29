@@ -433,6 +433,9 @@ namespace off
 		{
 			// 6A 07 FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 14 5D C3
 			{ XorString("\x6A\x07\xFF\x35\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x14\x5D\xC3"), XorString("xxxx????x????xxxxx"), CSignature::EMode::ExtractPtr, 4 },
+
+			// 6A 07 FF 35 ? ? ? ? E8 ? ? ? ? 83 C4 24 8B E5 5D C3
+			{ XorString("\x6A\x07\xFF\x35\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x24\x8B\xE5\x5D\xC3"), XorString("xxxx????x????xxxxxxx"), CSignature::EMode::ExtractPtr, 4 },
 		};
 		CSignature kbuttons[] = 
 		{
@@ -468,6 +471,9 @@ namespace off
 		{
 			// BB ? ? ? ? 7E ? BE ? ? ? ? 8B 0B 8B FB
 			{ XorString("\xBB\x00\x00\x00\x00\x7E\x00\xBE\x00\x00\x00\x00\x8B\x0B\x8B\xFB"), XorString("x????x?x????xxxx"), CSignature::EMode::ExtractPtr, 1 },
+
+			// 6A 0C E8 ? ? ? ? 83 C4 ? 89 ? ? 8B
+			{ XorString("\x6A\x0C\xE8\x00\x00\x00\x00\x83\xC4\x00\x89\x00\x00\x8B"), XorString("xxx????xx?x??x"), CSignature::EMode::ExtractPtr, 15 },
 		};
 		CSignature tr_numImages[] = 
 		{
