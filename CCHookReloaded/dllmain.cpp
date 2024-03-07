@@ -177,11 +177,15 @@ EMod InitializeMod()
 			}\n\
 		}");
 
-	media.coverShader = eng::RegisterAndLoadShader(coverShaderText.decrypt(), spoofSeed+0);
-	media.plainShader = eng::RegisterAndLoadShader(plainShaderText.decrypt(), spoofSeed+1);
-	media.quadShader = eng::RegisterAndLoadShader(quadShaderText.decrypt(), spoofSeed+2);
-	media.plasticShader = eng::RegisterAndLoadShader(plasticShaderText.decrypt(), spoofSeed+3);
-	media.circleShader = eng::RegisterAndLoadShader(circleShaderText.decrypt(), spoofSeed+4);
+	// Disable dynamic shader loading for ET:Legacy client. they have a bug which crashes the game on `vid_restart`...
+	if (!off::cur.IsEtLegacy())
+	{
+		media.coverShader = eng::RegisterAndLoadShader(coverShaderText.decrypt(), spoofSeed + 0);
+		media.plainShader = eng::RegisterAndLoadShader(plainShaderText.decrypt(), spoofSeed + 1);
+		media.quadShader = eng::RegisterAndLoadShader(quadShaderText.decrypt(), spoofSeed + 2);
+		media.plasticShader = eng::RegisterAndLoadShader(plasticShaderText.decrypt(), spoofSeed + 3);
+		media.circleShader = eng::RegisterAndLoadShader(circleShaderText.decrypt(), spoofSeed + 4);
+	}
 
 	media.railCoreShader = DoSyscall(CG_R_REGISTERSHADERNOMIP, XorString("railCore"));
 	media.onFireShader = DoSyscall(CG_R_REGISTERSHADERNOMIP, XorString("entityOnFire1"));
@@ -1876,8 +1880,11 @@ void hooked_EndFrame(int *frontEndMsec, int *backEndMsec)
 
 		char reconnectCommand[96];
 		strcpy_s(reconnectCommand, XorString("pb_myguid; net_port 27???; net_restart; vid_restart; pb_myguid; reconnect"));
-		for (size_t i = 0; i < 3; i++)
-			reconnectCommand[i + 11] = '0' + (tools::Rand() % 10);
+		for (size_t i = 0; i < sizeof(reconnectCommand) && reconnectCommand[i]; i++)
+		{
+			if (reconnectCommand[i] == '?')
+				reconnectCommand[i] = '0' + (tools::Rand() % 10);
+		}
 
 		HWND consoleTextbox = FindWindowExA(FindWindowA(nullptr, 
 			off::cur.IsEtLegacy() ? XorString("ET: Legacy Console") : XorString("ET Console")), nullptr, XorString("Edit"), 0);
