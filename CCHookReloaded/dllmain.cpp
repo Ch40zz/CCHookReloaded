@@ -177,15 +177,11 @@ EMod InitializeMod()
 			}\n\
 		}");
 
-	// Disable dynamic shader loading for ET:Legacy client. they have a bug which crashes the game on `vid_restart`...
-	if (!off::cur.IsEtLegacy())
-	{
-		media.coverShader = eng::RegisterAndLoadShader(coverShaderText.decrypt(), spoofSeed + 0);
-		media.plainShader = eng::RegisterAndLoadShader(plainShaderText.decrypt(), spoofSeed + 1);
-		media.quadShader = eng::RegisterAndLoadShader(quadShaderText.decrypt(), spoofSeed + 2);
-		media.plasticShader = eng::RegisterAndLoadShader(plasticShaderText.decrypt(), spoofSeed + 3);
-		media.circleShader = eng::RegisterAndLoadShader(circleShaderText.decrypt(), spoofSeed + 4);
-	}
+	media.coverShader = eng::RegisterAndLoadShader(coverShaderText.decrypt(), spoofSeed + 0);
+	media.plainShader = eng::RegisterAndLoadShader(plainShaderText.decrypt(), spoofSeed + 1);
+	media.quadShader = eng::RegisterAndLoadShader(quadShaderText.decrypt(), spoofSeed + 2);
+	media.plasticShader = eng::RegisterAndLoadShader(plasticShaderText.decrypt(), spoofSeed + 3);
+	media.circleShader = eng::RegisterAndLoadShader(circleShaderText.decrypt(), spoofSeed + 4);
 
 	media.railCoreShader = DoSyscall(CG_R_REGISTERSHADERNOMIP, XorString("railCore"));
 	media.onFireShader = DoSyscall(CG_R_REGISTERSHADERNOMIP, XorString("entityOnFire1"));

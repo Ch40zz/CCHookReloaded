@@ -350,6 +350,20 @@ namespace eng
 			return 0;
 
 		(void)DoSyscall(CG_R_LOADDYNAMICSHADER, shaderName, newShaderData);
-		return DoSyscall(CG_R_REGISTERSHADER, shaderName);
+		qhandle_t shaderHandle = DoSyscall(CG_R_REGISTERSHADER, shaderName);
+
+		// Immediately delete the dynamic shaders after registration.
+		// ET:Legacy client crashes otherwise, as they have a bug which crashes the game on `vid_restart` when the dynamic shader list isn't empty...
+		// 
+		// Crash callstack: 
+		//	R_InitShaders()
+		//	CreateExternalShaders()
+		//	R_FindShader("projectionShadow")
+		//	FindShaderInShaderText()
+		//	if (!dptr->shadertext || !strlen(dptr->shadertext))
+		//	dptr->shadertext == 0xAAAAAAAA
+		DoSyscall(CG_R_LOADDYNAMICSHADER, nullptr, nullptr);
+
+		return shaderHandle;
 	}
 }
