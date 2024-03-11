@@ -10,9 +10,22 @@ bool InjectDll(HANDLE processHandle, std::wstring_view dllPath)
 	// Inject shellcode to call LdrLoadDll.
 	// Kernel32 is not yet loaded at this point so we can't go the easy route with LoadLibraryA/W.
 
+	typedef BOOL (WINAPI *tIsWow64Process)(HANDLE hProcess, PBOOL Wow64Process);
+	tIsWow64Process pIsWow64Process = (tIsWow64Process)GetProcAddress(GetModuleHandleA("kernel32.dll"), "IsWow64Process");
+
+	BOOL IsWow64;
+	if (pIsWow64Process && pIsWow64Process(processHandle, &IsWow64) && !IsWow64)
+	{
+		MessageBoxW(0, L"InjectDll: Target process is not 32-bit", L"Error", MB_ICONERROR | MB_OK);
+		return false;
+	}
+
 	uint8_t* mem = (uint8_t*)VirtualAllocEx(processHandle, nullptr, 0x2000, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	if (!mem)
+	{
+		MessageBoxW(0, L"InjectDll: Failed to allocate memory", L"Error", MB_ICONERROR | MB_OK);
 		return false;
+	}
 
 	uint8_t* unistring = mem;
 	uint8_t* shellcode = mem + 0x1000;
@@ -25,7 +38,10 @@ bool InjectDll(HANDLE processHandle, std::wstring_view dllPath)
 	unicodeString->Length = unicodeString->MaximumLength = unicodeLen;
 
 	if (!WriteProcessMemory(processHandle, unistring, unicodeData, sizeof(unicodeData), nullptr))
+	{
+		MessageBoxW(0, L"InjectDll: Failed to write DLL path!", L"Error", MB_ICONERROR | MB_OK);
 		return false;
+	}
 
 	uint8_t shellcode_data[] = {
 		0x68, 0, 0, 0, 0,	/* push <arg4 @ $+1> */
@@ -44,11 +60,17 @@ bool InjectDll(HANDLE processHandle, std::wstring_view dllPath)
 	/* LdrLoadDll() */ *(void**)(shellcode_data + 21)			= GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "LdrLoadDll");
 
 	if (!WriteProcessMemory(processHandle, shellcode, shellcode_data, sizeof(shellcode_data), nullptr))
+	{
+		MessageBoxW(0, L"InjectDll: Failed to write shellcode!", L"Error", MB_ICONERROR | MB_OK);
 		return false;
+	}
 	
 	HANDLE threadHandle = CreateRemoteThread(processHandle, nullptr, 0, (LPTHREAD_START_ROUTINE)shellcode, nullptr, 0, nullptr);
 	if (!threadHandle)
+	{
+		MessageBoxW(0, L"InjectDll: Failed to create remote thread!", L"Error", MB_ICONERROR | MB_OK);
 		return false;
+	}
 
 	(void)WaitForSingleObject(threadHandle, INFINITE);
 
@@ -124,6 +146,7 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 	tNtResumeProcess NtResumeProcess = (tNtResumeProcess)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtResumeProcess");
 	if (!NT_SUCCESS(NtResumeProcess(pi.hProcess)))
 	{
+		MessageBoxW(0, L"Failed to resume the process!", L"Error", MB_ICONERROR | MB_OK);
 		TerminateProcess(pi.hProcess, 1);
 		return 1;
 	}
