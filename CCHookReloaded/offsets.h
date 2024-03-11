@@ -398,13 +398,16 @@ namespace off
 
 	static inline bool RetrieveDynamic()
 	{
-		auto FindSignature = [](const CSignature *sigs, size_t count) -> uintptr_t {
+#define FindSignature(sigs, count) _FindSignature(sigs, count, XorString(#sigs))
+		auto _FindSignature = [](const CSignature *sigs, size_t count, const char *name) -> uintptr_t {
 			for (size_t i = 0; i < count; i++)
 			{
 				uintptr_t address = sigs[i].Find();
 				if (address)
 					return address - cur.GetRelImageBase();
 			}
+
+			printf("[ ERROR ] Failed to find signature(s) for '%s'.\n", name);
 
 			return 0;
 		};
@@ -479,6 +482,9 @@ namespace off
 		{
 			// 8B ? ? ? ? ? 81 ? 00 08 00 00 75 ? 68
 			{ XorString("\x8B\x00\x00\x00\x00\x00\x81\x00\x00\x08\x00\x00\x75\x00\x68"), XorString("x?????x?xxxxx?x"), CSignature::EMode::ExtractPtr, 2 },
+
+			// A1 ? ? ? ? 3D 00 08 00 00 75 ? 68
+			{ XorString("\xA1\x00\x00\x00\x00\x3D\x00\x08\x00\x00\x75\x00\x68"), XorString("x????xxxxxx?x"), CSignature::EMode::ExtractPtr, 1 },
 		};
 		CSignature tr_images[] = 
 		{
@@ -507,5 +513,7 @@ namespace off
 		off.tr_images = FindSignature(tr_images, std::size(tr_images));
 
 		return cur.UpdateOffsets(off);
+
+		#undef FindSignature
 	}
 }
