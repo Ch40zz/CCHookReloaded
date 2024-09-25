@@ -209,27 +209,68 @@ namespace tools
 			cg_snapshot.ps.pm_flags & PMF_FOLLOW)
 			return false;
 
-		// Create socket if needed (once)
-		static SOCKET sock = INVALID_SOCKET;
-		if (sock == INVALID_SOCKET)
+		// Get current network destination and fix it up for localhost if needed
+		uint16_t port;
+		ADDRESS_FAMILY family;
+		size_t addressSize;
+		uint8_t address[32];
+
+		if (off::cur.IsEtLegacy())
 		{
-			sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-			if (sock != INVALID_SOCKET)
+			const netadr_legacy_t* remoteAddress = (netadr_legacy_t*)off::cur.remoteAddress();
+			switch (remoteAddress->type)
 			{
-				// Make socket non-blocking for obvious reasons
-				u_long mode = 1;
-				ioctlsocket(sock, FIONBIO, &mode);
+			case netadrtype_legacy_t::NA_IP:
+				family = AF_INET;
+				port = remoteAddress->port;
+				addressSize = sizeof(remoteAddress->ip);
+				memcpy(address, remoteAddress->ip, addressSize);
+				break;
+			case netadrtype_legacy_t::NA_IP6:
+				family = AF_INET6;
+				port = remoteAddress->port;
+				addressSize = sizeof(remoteAddress->ip6);
+				memcpy(address, remoteAddress->ip6, addressSize);
+				break;
+			default:
+				family = AF_INET;
+				vmCvar_t net_port; // localhost port
+				DoSyscall(CG_CVAR_REGISTER, &net_port, XorString("net_port"), XorString("27960"), 0);
+				port = htons(net_port.integer);
+				addressSize = sizeof(remoteAddress->ip);
+				*(uint32_t*)address = 0x0100007F;
+				break;
+			}
+		}
+		else
+		{
+			const netadr_t* remoteAddress = off::cur.remoteAddress();
+			switch (remoteAddress->type)
+			{
+			case netadrtype_t::NA_IP:
+				family = AF_INET;
+				port = remoteAddress->port;
+				addressSize = sizeof(remoteAddress->ip);
+				memcpy(address, remoteAddress->ip, addressSize);
+				break;
+			case netadrtype_t::NA_IPX:
+				family = AF_IPX;
+				port = remoteAddress->port;
+				addressSize = sizeof(remoteAddress->ipx);
+				memcpy(address, remoteAddress->ipx, addressSize);
+				break;
+			default:
+				family = AF_INET;
+				vmCvar_t net_port; // localhost port
+				DoSyscall(CG_CVAR_REGISTER, &net_port, XorString("net_port"), XorString("27960"), 0);
+				port = htons(net_port.integer);
+				addressSize = sizeof(remoteAddress->ip);
+				*(uint32_t*)address = 0x0100007F;
+				break;
 			}
 		}
 
-		// localhost port
-		vmCvar_t net_port;
-		DoSyscall(CG_CVAR_REGISTER, &net_port, XorString("net_port"), XorString("27960"), 0);
-
-		// Get current network destination and fix it up for localhost if needed
-		netadr_t *remoteAddress = off::cur.remoteAddress();
-		const uint32_t ipAddress = *(uint32_t*)remoteAddress->ip ? *(uint32_t*)remoteAddress->ip : 0x0100007F;
-		const uint16_t port = remoteAddress->port ? remoteAddress->port : htons(net_port.integer);
+		static SOCKET sock = INVALID_SOCKET;
 
 		// Send server status request every 500 ms
 		static int timeout_ms = 0;
@@ -237,10 +278,23 @@ namespace tools
 		{
 			timeout_ms = 500;
 
+			// Re-Create socket if needed
+			
+			if (sock != INVALID_SOCKET)
+				closesocket(sock);
+
+			sock = socket(family, SOCK_DGRAM, IPPROTO_UDP);
+			if (sock != INVALID_SOCKET)
+			{
+				// Make socket non-blocking for obvious reasons
+				u_long mode = 1;
+				ioctlsocket(sock, FIONBIO, &mode);
+			}
+
 			sockaddr_in sockAddr;
-			sockAddr.sin_family = AF_INET;
-			sockAddr.sin_addr.s_addr = ipAddress;
+			sockAddr.sin_family = family;
 			sockAddr.sin_port = port;
+			memcpy(&sockAddr.sin_addr, address, addressSize);
 
 			// UDP messages always arrive (if they arrive) in the exact same size as sent
 			sendto(sock, XorString(NET_STATUS_REQUEST), sizeof(NET_STATUS_REQUEST)-1, 0, (sockaddr*)&sockAddr, sizeof(sockAddr));
@@ -254,22 +308,24 @@ namespace tools
 
 		// UDP messages always arrive (if they arrive) in the exact same size as sent
 		char buffer[4096];
-		int read = recvfrom(sock, buffer, sizeof(buffer), 0, (sockaddr*)&sockAddr, &fromlen);
+		int read = recvfrom(sock, buffer, sizeof(buffer) - 1, 0, (sockaddr*)&sockAddr, &fromlen);
 		if (read <= 0)
 			return false;
 	
 		buffer[read] = '\0';
 
-		if (sockAddr.sin_addr.s_addr != ipAddress || sockAddr.sin_port != port)
+		if (sockAddr.sin_family != family || sockAddr.sin_port != port || memcmp(&sockAddr.sin_addr, address, addressSize))
 			return false;
 
-		if (memcmp(buffer, XorString(NET_STATUS_RESPONSE), sizeof(NET_STATUS_RESPONSE)-1))
+		if (memcmp(buffer, XorString(NET_STATUS_RESPONSE), sizeof(NET_STATUS_RESPONSE) - 1))
 			return false;
 
 		// Parse the server info to find all spectators.
 		// A spectator will always inherit the XP numbers of the spectated player.
 		// Because XP numbers are rather unique, this can detect spectators.
 		// To be 100% certain, we should filter out existing players.
+
+		spectatorNames.clear();
 
 		std::stringstream playersstream(buffer + sizeof(NET_STATUS_RESPONSE)-1);
 

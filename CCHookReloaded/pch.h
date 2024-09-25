@@ -523,7 +523,7 @@ typedef enum
 	NUM_BUTTONS
 } kbuttons_t;
 
-typedef enum
+enum class netadrtype_t
 {
 	NA_BOT,
 	NA_BAD,                 // an address lookup failed
@@ -532,7 +532,7 @@ typedef enum
 	NA_IP,
 	NA_IPX,
 	NA_BROADCAST_IPX
-} netadrtype_t;
+};
 
 typedef struct
 {
@@ -543,6 +543,27 @@ typedef struct
 
 	unsigned short port;
 } netadr_t;
+
+enum class netadrtype_legacy_t : uint16_t
+{
+	NA_BAD = 0,                 ///< an address lookup failed
+	NA_BOT,
+	NA_LOOPBACK,
+	NA_BROADCAST,
+	NA_IP,
+	NA_IP6,
+	NA_MULTICAST6,
+	NA_UNSPEC
+};
+
+typedef struct
+{
+	netadrtype_legacy_t type;
+	byte ip[4];
+	byte ip6[16];
+	uint16_t port;
+	uint64_t scope_id; ///< Needed for IPv6 link-local addresses
+} netadr_legacy_t;
 
 #pragma pack(push, 1)
 /*struct etpro_command

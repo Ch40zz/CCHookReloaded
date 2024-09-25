@@ -1093,8 +1093,10 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 		// Spectator Warning
 		if (cfg.spectatorWarning)
 		{
-			std::vector<std::string> spectatorNames;
-			if (tools::GatherSpectatorInfo(spectatorNames) && !spectatorNames.empty())
+			static std::vector<std::string> spectatorNames;
+			tools::GatherSpectatorInfo(spectatorNames);
+
+			if (!spectatorNames.empty())
 			{
 				ui::DrawText(320.0f, 90.0f, 0.20f, 0.20f, colorRed, XorString("WARNING - Spectator:"),
 					0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
