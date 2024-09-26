@@ -530,7 +530,7 @@ intptr_t hooked_CL_CgameSystemCalls(intptr_t *args)
 				if (ent.hModel != media.pickupModels[i])
 					continue;
 
-				const bool isVisible = eng::IsPointVisible(cg_refdef.vieworg, ent.origin);
+				const bool isVisible = eng::IsPointVisible(cg_refdef.vieworg, ent.origin, cg_snapshot.ps.clientNum);
 
 				ent.renderfx |=  isVisible ? RF_DEPTHHACK : 0;
 				DoSyscall(CG_R_ADDREFENTITYTOSCENE, &ent);
@@ -548,7 +548,7 @@ intptr_t hooked_CL_CgameSystemCalls(intptr_t *args)
 		{
 			if (cg_missiles[ent.entityNum])
 			{
-				const bool isVisible = eng::IsPointVisible(cg_refdef.vieworg, ent.origin);
+				const bool isVisible = eng::IsPointVisible(cg_refdef.vieworg, ent.origin, cg_snapshot.ps.clientNum);
 
 				ent.renderfx |= isVisible ? RF_DEPTHHACK : 0;
 				DoSyscall(CG_R_ADDREFENTITYTOSCENE, &ent);
@@ -852,6 +852,8 @@ intptr_t hooked_CL_CgameSystemCalls(intptr_t *args)
 					VectorCopy(ent.pos.trDelta, ci.velocity);
 				}
 			}
+
+			eng::CG_BuildSolidList();
 		}
 		
 		return success;
@@ -1413,7 +1415,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 							VectorAdd(maxs, offset, maxs);
 
 							// SnapVector(ent->s.pos.trBase + ent->client->ps.viewheight)
-							if (eng::IsBoxVisible(cg_refdef.vieworg, mins, maxs, cfg.aimbotHeadBoxTraceStep, aimPos))
+							if (eng::IsBoxVisible(cg_refdef.vieworg, mins, maxs, cfg.aimbotHeadBoxTraceStep, aimPos, ci.id))
 								return true;
 						}
 						else
@@ -1428,7 +1430,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 							VectorAdd(mins, origin, mins);
 							VectorAdd(maxs, origin, maxs);
 
-							if (eng::IsBoxVisible(cg_refdef.vieworg, mins, maxs, cfg.aimbotBodyBoxTraceStep, aimPos))
+							if (eng::IsBoxVisible(cg_refdef.vieworg, mins, maxs, cfg.aimbotBodyBoxTraceStep, aimPos, ci.id))
 								return true;
 						}
 					}
@@ -1443,7 +1445,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 						PredictAimPos(ci, aimPos);
 					
-						if (eng::IsPointVisible(cg_refdef.vieworg, aimPos))
+						if (eng::IsPointVisible(cg_refdef.vieworg, aimPos, ci.id))
 							return true;
 					}
 
@@ -1700,7 +1702,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 					if (totalTime > MISSILE_PRESTEP_TIME)
 					{
-						const vec4_t& color = eng::IsPointVisible(cg_refdef.vieworg, predictedPos) ? colorYellow : colorRed;
+						const vec4_t& color = eng::IsPointVisible(cg_refdef.vieworg, predictedPos, cg_snapshot.ps.clientNum) ? colorYellow : colorRed;
 
 						//ui::DrawLine3D(lastPredictedPos, predictedPos, 2.0f, color);
 						draw3dCommands.emplace_back(lastPredictedPos, predictedPos, color, RF_DEPTHHACK);

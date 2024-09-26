@@ -8,6 +8,13 @@
 
 namespace eng
 {
+	static int cg_numSolidEntities = 0;
+	static int cg_numSolidFTEntities = 0;
+	static int cg_numTriggerEntities = 0;
+	static const entityState_t* cg_solidEntities[MAX_ENTITIES_IN_SNAPSHOT];
+	static const entityState_t* cg_solidFTEntities[MAX_ENTITIES_IN_SNAPSHOT];
+	static const entityState_t* cg_triggerEntities[MAX_ENTITIES_IN_SNAPSHOT];
+
 	void CG_ParseReinforcementTimes(const char *pszReinfSeedString)
 	{
 		const char *tmp = pszReinfSeedString, *tmp2;
@@ -68,77 +75,81 @@ namespace eng
 
 		DoSyscall(CG_R_ADDREFENTITYTOSCENE, &ent);
 	}
-	void CG_Trace(trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber, int mask)
+	void CG_BuildSolidList()
 	{
-		int cg_numSolidEntities = 0,
-			cg_numSolidFTEntities = 0,
-			cg_numTriggerEntities = 0;
+		cg_numSolidEntities = 0;
+		cg_numSolidFTEntities = 0;
+		cg_numTriggerEntities = 0;
 
-		const entityState_t *cg_solidEntities[MAX_ENTITIES_IN_SNAPSHOT],
-			*cg_solidFTEntities[MAX_ENTITIES_IN_SNAPSHOT],
-			*cg_triggerEntities[MAX_ENTITIES_IN_SNAPSHOT];
+		const size_t numEntities = std::min<size_t>(cg_snapshot.numEntities, MAX_ENTITIES_IN_SNAPSHOT);
+		for (size_t i = 0; i < numEntities; i++)
+		{
+			const entityState_t* ent = &cg_snapshot.entities[i];
 
-		auto CG_BuildSolidList = [&]() -> void {
-			const size_t numEntities = std::min<size_t>(cg_snapshot.numEntities, MAX_ENTITIES_IN_SNAPSHOT);
-			for (size_t i = 0 ; i < numEntities; i++)
+			if (ent->solid == SOLID_BMODEL && (ent->eFlags & EF_NONSOLID_BMODEL))
+				continue;
+
+			if (ent->eType == ET_ITEM ||
+				ent->eType == ET_PUSH_TRIGGER ||
+				ent->eType == ET_TELEPORT_TRIGGER ||
+				ent->eType == ET_CONCUSSIVE_TRIGGER ||
+				ent->eType == ET_OID_TRIGGER
+#ifdef VISIBLE_TRIGGERS
+				|| ent->eType == ET_TRIGGER_MULTIPLE
+				|| ent->eType == ET_TRIGGER_FLAGONLY
+				|| ent->eType == ET_TRIGGER_FLAGONLY_MULTIPLE
+#endif
+				)
 			{
-				const entityState_t *ent = &cg_snapshot.entities[i];
 
-				if(ent->solid == SOLID_BMODEL && (ent->eFlags & EF_NONSOLID_BMODEL)) 
-					continue;
-
-				if (ent->eType == ET_ITEM || 
-					ent->eType == ET_PUSH_TRIGGER || 
-					ent->eType == ET_TELEPORT_TRIGGER || 
-					ent->eType == ET_CONCUSSIVE_TRIGGER || 
-					ent->eType == ET_OID_TRIGGER 
-		#ifdef VISIBLE_TRIGGERS
-					|| ent->eType == ET_TRIGGER_MULTIPLE
-					|| ent->eType == ET_TRIGGER_FLAGONLY
-					|| ent->eType == ET_TRIGGER_FLAGONLY_MULTIPLE
-		#endif
-					)
-				{
-
-					cg_triggerEntities[cg_numTriggerEntities] = ent;
-					cg_numTriggerEntities++;
-					continue;
-				}
-
-				if(ent->eType == ET_CONSTRUCTIBLE)
-				{
-					cg_triggerEntities[cg_numTriggerEntities] = ent;
-					cg_numTriggerEntities++;
-				}
-
-				if (ent->solid)
-				{
-					cg_solidEntities[cg_numSolidEntities] = ent;
-					cg_numSolidEntities++;
-
-					cg_solidFTEntities[cg_numSolidFTEntities] = ent;
-					cg_numSolidFTEntities++;
-				}
+				cg_triggerEntities[cg_numTriggerEntities] = ent;
+				cg_numTriggerEntities++;
+				continue;
 			}
-		};
-		auto CG_ClipMoveToEntities = [&](const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber, int mask, int capsule, trace_t *tr) -> void {
-			trace_t trace;
+
+			if (ent->eType == ET_CONSTRUCTIBLE)
+			{
+				cg_triggerEntities[cg_numTriggerEntities] = ent;
+				cg_numTriggerEntities++;
+			}
+
+			if (ent->solid)
+			{
+				cg_solidEntities[cg_numSolidEntities] = ent;
+				cg_numSolidEntities++;
+
+				cg_solidFTEntities[cg_numSolidFTEntities] = ent;
+				cg_numSolidFTEntities++;
+			}
+		}
+	}
+	void CG_ClipMoveToEntities(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber, int mask, int capsule, trace_t* tr)
+	{
+		for (int i = 0; i < cg_numSolidEntities; i++)
+		{
+			const entityState_t* ent = cg_solidEntities[i];
+
+			if (ent->number == skipNumber)
+				continue;
+
+			clipHandle_t cmodel;
 			vec3_t origin, angles;
 
-			for (int i = 0; i < cg_numSolidEntities; i++)
+			if (ent->solid == SOLID_BMODEL)
 			{
-				const entityState_t *ent = cg_solidEntities[i];
+				cmodel = DoSyscall(CG_CM_INLINEMODEL, ent->modelindex);
 
-				if (ent->number == skipNumber)
-					continue;
-
-				clipHandle_t cmodel;
-				if (ent->solid == SOLID_BMODEL)
+				BG_EvaluateTrajectory(&ent->apos, cg_time, angles, qtrue, ent->effect2Time);
+				BG_EvaluateTrajectory(&ent->pos, cg_time, origin, qfalse, ent->effect2Time);
+			}
+			else
+			{
+				vec3_t bmins, bmaxs;
+				if (ent->eFlags & EF_FAKEBMODEL)
 				{
-					cmodel = DoSyscall(CG_CM_INLINEMODEL, ent->modelindex);
-
-					VectorCopy(ent->angles, angles);
-					VectorCopy(ent->origin, origin);
+					// repurposed origin2 and angles2 to receive mins and maxs of func_fakebrush
+					VectorCopy(ent->origin2, bmins);
+					VectorCopy(ent->angles2, bmaxs);
 				}
 				else
 				{
@@ -146,58 +157,61 @@ namespace eng
 					int zd = ((ent->solid >> 8) & 255);
 					int zu = ((ent->solid >> 16) & 255) - 32;
 
-					vec3_t bmins, bmaxs;
 					bmins[0] = bmins[1] = -x;
 					bmaxs[0] = bmaxs[1] = x;
 					bmins[2] = -zd;
 					bmaxs[2] = zu;
-					cmodel = DoSyscall(CG_CM_TEMPBOXMODEL, bmins, bmaxs);
-
-					VectorCopy(vec3_origin, angles);
-					VectorCopy(ent->origin, origin);
 				}
 
-				DoSyscall(CG_CM_TRANSFORMEDBOXTRACE, &trace, start, end, mins, maxs, cmodel,  mask, origin, angles);
+				cmodel = DoSyscall(CG_CM_TEMPBOXMODEL, bmins, bmaxs);
 
-				if (trace.allsolid || trace.fraction < tr->fraction)
-				{
-					trace.entityNum = ent->number;
-					*tr = trace;
-				}
-				else if (trace.startsolid)
-				{
-					tr->startsolid = qtrue;
-				}
-
-				if (tr->allsolid)
-					return;
+				VectorCopy(vec3_origin, angles);
+				VectorCopy(ent->pos.trBase, origin);
 			}
-		};
 
+			trace_t trace;
+			if (capsule)
+				DoSyscall(CG_CM_TRANSFORMEDCAPSULETRACE, &trace, start, end, mins, maxs, cmodel, mask, origin, angles);
+			else
+				DoSyscall(CG_CM_TRANSFORMEDBOXTRACE, &trace, start, end, mins, maxs, cmodel, mask, origin, angles);
 
-		CG_BuildSolidList();
+			if (trace.allsolid || trace.fraction < tr->fraction)
+			{
+				trace.entityNum = ent->number;
+				*tr = trace;
+			}
+			else if (trace.startsolid)
+			{
+				tr->startsolid = qtrue;
+			}
 
+			if (tr->allsolid)
+				return;
+		}
+	}
+	void CG_Trace(trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int skipNumber, int mask)
+	{
 		DoSyscall(CG_CM_BOXTRACE, result, start, end, mins, maxs, 0, mask);
 
 		result->entityNum = result->fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
 
 		CG_ClipMoveToEntities(start, mins, maxs, end, skipNumber, mask, qfalse, result);
 	}
-	bool IsPointVisible(const vec3_t start, const vec3_t pt)
+	bool IsPointVisible(const vec3_t start, const vec3_t pt, int skipNumber)
 	{
 		trace_t t;
-		eng::CG_Trace(&t, start, NULL, NULL, pt, cg_snapshot.ps.clientNum, MASK_SHOT);
+		eng::CG_Trace(&t, start, NULL, NULL, pt, skipNumber, MASK_SHOT);
 
 		return (t.fraction == 1.f);
 	}
-	bool IsBoxVisible(const vec3_t start, const vec3_t mins, const vec3_t maxs, float step, vec3_t visOut)
+	bool IsBoxVisible(const vec3_t start, const vec3_t mins, const vec3_t maxs, float step, vec3_t visOut, int skipNumber)
 	{
 		// Trivial case: Middle is visible
 
 		VectorAdd(mins, maxs, visOut);
 		VectorScale(visOut, 0.5f, visOut);
 
-		if (IsPointVisible(start, visOut))
+		if (IsPointVisible(start, visOut, skipNumber))
 			return true;
 
 
@@ -239,7 +253,7 @@ namespace eng
 				VectorAdd(boxCorner[i], boxCorner[i + 1], mid);
 				VectorScale(mid, 0.5f, mid);
 
-				if (IsPointVisible(start, mid))
+				if (IsPointVisible(start, mid, skipNumber))
 				{
 					VectorCopy(mid, visOut);
 					return true;
@@ -249,7 +263,7 @@ namespace eng
 			// Try all corners last
 			for (size_t i = 0; i < std::size(boxCorner); i++)
 			{
-				if (IsPointVisible(start, boxCorner[i]))
+				if (IsPointVisible(start, boxCorner[i], skipNumber))
 				{
 					VectorCopy(boxCorner[i], visOut);
 					return true;

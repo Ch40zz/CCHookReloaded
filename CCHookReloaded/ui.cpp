@@ -405,7 +405,7 @@ namespace ui
 			DrawCheckbox(menuX + 10, menuY + 35, XorString("Spectator Warning"), &cfg.spectatorWarning);
 			DrawCheckbox(menuX + 10, menuY + 45, XorString("Enemy Spawntimer"), &cfg.enemySpawnTimer);
 			DrawCheckbox(menuX + 10, menuY + 55, XorString("Custom Damage Sounds"), &cfg.customDmgSounds);
-			DrawCheckbox(menuX + 10, menuY + 65, XorString("Quick Unban-Reconnect"), &cfg.quickUnbanReconnect);
+			DrawCheckbox(menuX + 10, menuY + 65, XorString("Quick Unban-Reconnect (F10)"), &cfg.quickUnbanReconnect);
 			DrawCheckbox(menuX + 10, menuY + 75, XorString("Clean Screenshots"), &cfg.cleanScreenshots);
 			break;
 		}
