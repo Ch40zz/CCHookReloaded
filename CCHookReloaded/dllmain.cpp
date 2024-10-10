@@ -811,6 +811,13 @@ intptr_t hooked_CL_CgameSystemCalls(intptr_t *args)
 			sv_frametime = snapshot->serverTime - cg_snapshot.serverTime;
 			memcpy(&cg_snapshot, snapshot, sizeof(cg_snapshot));
 
+			if (off::cur.IsEtLegacy())
+			{
+				// Fix for ET:Legacy to seize all mouse movement even without the removed `KEYCATCH_MESSAGE`
+				if (showMenu)
+					snapshot->ps.pm_type = PM_FREEZE;
+			}
+
 			// No damage feedback on bullet impacts
 			if (cfg.noDamageFeedback)
 				snapshot->ps.damageEvent = 0;
