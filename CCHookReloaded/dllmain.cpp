@@ -235,8 +235,12 @@ void PatchLoadedImages(bool enabled)
 		unsigned int emptyTexture = 0;
 		for (size_t i = 0; i < numImages; i++)
 		{
-			if (strstr(images[i]->imgName, XorString("gfx/2d/nullshader.tga")))
+			if (strstr(images[i]->imgName, XorString("gfx/2d/nullshader.tga")) ||
+				strstr(images[i]->imgName, XorString("gfx/colors/ablack.tga")))
+			{
 				emptyTexture = images[i]->texnum;
+				break;
+			}
 		}
 
 		for (size_t i = 0; i < numImages; i++)
