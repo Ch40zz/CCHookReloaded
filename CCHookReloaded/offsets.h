@@ -407,7 +407,7 @@ namespace off
 					return address - cur.GetRelImageBase();
 			}
 
-			printf("[ ERROR ] Failed to find signature(s) for '%s'.\n", name);
+			printf(XorString("[ ERROR ] Failed to find signature(s) for '%s'.\n"), name);
 
 			return 0;
 		};
