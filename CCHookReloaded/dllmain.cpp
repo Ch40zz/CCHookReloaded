@@ -474,9 +474,16 @@ void etpro_SpoofGUID(const char *newGuid)
 }
 void nitmod_SpoofMAC(const char *newMac)
 {
+	char curMac[18] = {};
+	DoSyscall(CG_CVAR_VARIABLESTRINGBUFFER, XorString("x"), curMac, sizeof(curMac));
+
 	char tmpMac[18];
 	memcpy(tmpMac, newMac, sizeof(tmpMac));
 	tools::RandomizeHexString(tmpMac, sizeof(tmpMac), '?', ~spoofSeed);
+
+	// Prevent `sv_userInfoFloodProtect` from being triggered by only updating user info if there would be a change
+	if (!strcmp(curMac, tmpMac))
+		return;
 
 	// This is pretty memey:
 	// The "x" CVar contains the MAC Address read by Nitmod.
