@@ -48,6 +48,25 @@ namespace tools
 
 		return nullptr;
 	}
+    void *DetourFunction(BYTE *src, const BYTE *dst, size_t len)
+    {
+            BYTE *jmp = (BYTE*)VirtualAlloc(0, len+5, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+            DWORD dwback;
+            VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &dwback);
+
+            memcpy(jmp, src, len);
+            jmp += len;
+            jmp[0] = 0xE9;
+            *(uint32_t*)(jmp+1) = (uint32_t)(src+len - jmp) - 5;
+
+            src[0] = 0xE9;
+            *(uint32_t*)(src+1) = (uint32_t)(dst - src) - 5;
+
+            VirtualProtect(src, len, dwback, &dwback);
+
+            return jmp - len;
+    }
 	EMod GetETMod(char *_modName)
 	{
 		HMODULE cgame = GetModuleHandleA(XorString("cgame_mp_x86.dll"));
