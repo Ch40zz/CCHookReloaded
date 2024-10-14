@@ -1425,7 +1425,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 							VectorCopy(tagOrient.origin, offset);
 							VectorMA(offset, hitbox.offset[0], tagOrient.axis[0], offset);
 							VectorMA(offset, hitbox.offset[1], tagOrient.axis[1], offset);
-							VectorMA(offset, hitbox.offset[2], tagOrient.axis[2], offset);
+							VectorMA(offset, hitbox.offset[2] + cfg.aimbotHeadHeightOffset, tagOrient.axis[2], offset);
 
 							PredictAimPos(ci, offset);
 
@@ -1922,7 +1922,7 @@ void CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 	PlaceCGHook();
 }
 
-void CALLBACK LdrDllNotification(ULONG NotificationReason, LDR_DLL_NOTIFICATION_DATA *NotificationData, PVOID Context)
+void CALLBACK LdrDllNotification(ULONG NotificationReason, PLDR_DLL_NOTIFICATION_DATA NotificationData, PVOID Context)
 {
 	// Called whenever a DLL is loaded or unloaded.
 	// This is used to initially hook some functions in order to not require a thread.

@@ -52,6 +52,7 @@ struct SConfig
 	float aimbotHumanSpeed = 0.0666f;
 	float aimbotHeadBoxTraceStep = 0.5f;
 	float aimbotBodyBoxTraceStep = 0.3f;
+	float aimbotHeadHeightOffset = 0.0f; // -5.0f aims roughly at the neck
 
 
 	// Spoofer
