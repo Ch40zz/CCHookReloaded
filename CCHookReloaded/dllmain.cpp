@@ -235,39 +235,45 @@ void PatchLoadedImages(bool enabled)
 		unsigned int emptyTexture = 0;
 		for (size_t i = 0; i < numImages; i++)
 		{
-			if (strstr(images[i]->imgName, XorString("gfx/2d/nullshader.tga")) ||
-				strstr(images[i]->imgName, XorString("gfx/colors/ablack.tga")))
+			if (strstr(images[i]->imgName, XorString("gfx/2d/nullshader.tga")) ||	// contained in the cheat's PK3
+				strstr(images[i]->imgName, XorString("gfx/colors/ablack.tga")))		// found on normal maps in case PK3 is missing
 			{
 				emptyTexture = images[i]->texnum;
 				break;
 			}
 		}
 
-		for (size_t i = 0; i < numImages; i++)
+		if (emptyTexture != 0)
 		{
-			if (cfg.noFoliage)
+			// It can happen that we couldn't find any invisible texture to replace with.
+			// In this case don't attempt to do so, otherwise all trees and weather will be static white.
+
+			for (size_t i = 0; i < numImages; i++)
 			{
-				if (strstr(images[i]->imgName, XorString("models/foliage")) ||
-					strstr(images[i]->imgName, XorString("models/mapobjects/plants")) ||
-					strstr(images[i]->imgName, XorString("models/mapobjects/tree")))
+				if (cfg.noFoliage)
 				{
-					origTrImages[images[i]->imgName] = images[i]->texnum;
-					images[i]->texnum = emptyTexture;
+					if (strstr(images[i]->imgName, XorString("models/foliage")) ||
+						strstr(images[i]->imgName, XorString("models/mapobjects/plants")) ||
+						strstr(images[i]->imgName, XorString("models/mapobjects/tree")))
+					{
+						origTrImages[images[i]->imgName] = images[i]->texnum;
+						images[i]->texnum = emptyTexture;
+					}
+				}
+
+				if (cfg.noWeather)
+				{
+					if (strstr(images[i]->imgName, XorString("gfx/misc/rain")) ||
+						strstr(images[i]->imgName, XorString("gfx/misc/snow")))
+					{
+						origTrImages[images[i]->imgName] = images[i]->texnum;
+						images[i]->texnum = emptyTexture;
+					}
 				}
 			}
 
-			if (cfg.noWeather)
-			{
-				if (strstr(images[i]->imgName, XorString("gfx/misc/rain")) ||
-					strstr(images[i]->imgName, XorString("gfx/misc/snow")))
-				{
-					origTrImages[images[i]->imgName] = images[i]->texnum;
-					images[i]->texnum = emptyTexture;
-				}
-			}
+			lastEmptyTexture = emptyTexture;
 		}
-
-		lastEmptyTexture = emptyTexture;
 	}
 	else
 	{
