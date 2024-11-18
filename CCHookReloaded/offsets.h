@@ -469,6 +469,9 @@ namespace off
 		{
 			// 66 83 3D ? ? ? ? 02 74 ? 0F
 			{ XorString("\x66\x83\x3D\x00\x00\x00\x00\x02\x74\x00\x0F"), XorString("xxx????xx?x"), CSignature::EMode::ExtractPtr, 3 },
+
+			// 66 83 3D ? ? ? ? 02 74 ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 04 85 C0
+			{ XorString("\x66\x83\x3D\x00\x00\x00\x00\x02\x74\x00\x68\x00\x00\x00\x00\xE8\x00\x00\x00\x00\x83\xC4\x04\x85\xC0"), XorString("xxx????xx?x????x????xxxxx"), CSignature::EMode::ExtractPtr, 3 },
 		};
 		CSignature fs_searchpaths[] = 
 		{
