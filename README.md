@@ -130,7 +130,7 @@ This makes it even possible to modify the data the mod will receive, allowing us
 
 ## Unlocking unpure PAK files
 
-Other cheats implementd this feature by hooking `FS_PureServerSetLoadedPaks()`.
+Other cheats implemented this feature by hooking `FS_PureServerSetLoadedPaks()`.
 This is however not really needed. One can simply walk all loaded PAKs in `fs_searchpaths`.
 Find the PAK file you want to unlock. To please the server, spoof the `checksum` and `pure_checksum` fields with the values from any legit pak file such as pak0.
 Now that we use the same hash as pak0, we do not want to send the hash multiple times to the server (since it was already sent).
