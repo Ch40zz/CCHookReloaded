@@ -3,7 +3,6 @@
 struct SConfig
 {
 	// General
-	bool cleanScreenshots = true;
 	const char *pakName = "cch";
 
 
@@ -68,6 +67,9 @@ struct SConfig
 	bool enemySpawnTimer = true;
 	bool customDmgSounds = true;
 	bool quickUnbanReconnect = true; // F10
+	bool cleanScreenshots = true;
+	bool cvarUnlocker = false; // Might be detected by some Anti-Cheats
+	bool picmipHack = false; // Visible on Screenshots
 
 
 	// ESP

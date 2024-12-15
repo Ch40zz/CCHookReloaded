@@ -421,6 +421,9 @@ namespace off
 		{
 			// FF 75 ? FF 75 ? FF ? 83 C4 44
 			{ XorString("\xFF\x75\x00\xFF\x75\x00\xFF\x00\x83\xC4\x44"), XorString("xx?xx?x?xxx"), CSignature::EMode::AddOffset, 8 },
+
+			// FF 75 ? FF 75 ? FF 55 ? 83 C4 44
+			{ XorString("\xFF\x75\x00\xFF\x75\x00\xFF\x55\x00\x83\xC4\x44"), XorString("xx?xx?xx?xxx"), CSignature::EMode::AddOffset, 9 },
 		};
 		CSignature SCR_UpdateScreen[] = 
 		{
@@ -464,6 +467,9 @@ namespace off
 		{
 			// 8B ? ? ? ? ? 83 C4 ? 8D ? 00 FF FF FF
 			{ XorString("\x8B\x00\x00\x00\x00\x00\x83\xC4\x00\x8D\x00\x00\xFF\xFF\xFF"), XorString("x?????xx?x?xxxx"), CSignature::EMode::ExtractPtr, 2 },
+			
+			// 8B ? ? ? ? ? 83 C4 ? ? ? ? ? ? 8D ? 00 FF FF FF
+			{ XorString("\x8B\x00\x00\x00\x00\x00\x83\xC4\x00\x00\x00\x00\x00\x00\x8D\x00\x00\xFF\xFF\xFF"), XorString("x?????xx??????x?xxxx"), CSignature::EMode::ExtractPtr, 2 },
 		};
 		CSignature netchan_remoteAddress[] = 
 		{
