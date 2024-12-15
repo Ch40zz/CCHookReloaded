@@ -289,10 +289,10 @@ void PatchLoadedImages(bool enabled)
 		origTrImages.clear();
 	}
 }
-void UnlockCvars(bool refresh)
+template <typename T>
+void UnlockCvarsInternal(bool refresh)
 {
-	static cvar_t originalCvars[MAX_CVARS];
-	static cvar_legacy_t originalCvarsLegacy[MAX_CVARS];
+	static T originalCvars[MAX_CVARS];
 
 	static bool lastCvarUnlockerState = false;
 	static bool lastPicmipHackState = false;
@@ -303,36 +303,38 @@ void UnlockCvars(bool refresh)
 	if (!refresh && cfg.cvarUnlocker == lastCvarUnlockerState && cfg.picmipHack == lastPicmipHackState)
 		return;
 
-	auto* cvar_indexes = (cvar_legacy_t*)((uint8_t*)GetModuleHandleA(0) + 0x3512340);
+	T* cvar_indexes = (T*)off::cur.cvar_indexes();
 	for (size_t i = 0; i < MAX_CVARS; i++)
 	{
 		if (!cvar_indexes[i].name)
 			continue;
 
-		if (!originalCvarsLegacy[i].name)
-			originalCvarsLegacy[i] = cvar_indexes[i];
+		if (!originalCvars[i].name)
+			originalCvars[i] = cvar_indexes[i];
 
 		if (cfg.cvarUnlocker != lastCvarUnlockerState)
 		{
 			if (cfg.cvarUnlocker)
 				cvar_indexes[i].flags &= ~CVAR_CHEAT;
-			else if (originalCvarsLegacy[i].name && (originalCvarsLegacy[i].flags & CVAR_CHEAT))
-				memcpy(&cvar_indexes[i], &originalCvarsLegacy[i], offsetof(cvar_legacy_t, next));
+			else if (originalCvars[i].name && (originalCvars[i].flags & CVAR_CHEAT))
+				memcpy(&cvar_indexes[i], &originalCvars[i], offsetof(T, next));
 		}
 
 		if (cfg.picmipHack)
 		{
-			if (!strcmp(cvar_indexes[i].name, "r_picmip"))
+			if (!strcmp(cvar_indexes[i].name, XorString("r_picmip")))
 			{
 				if (!vidrestartInProgress)
 				{
+					cvar_indexes[i].value = 31;
 					cvar_indexes[i].integer = 31;
 					cvar_indexes[i].flags = 0;
 				}
 				else
 				{
-					cvar_indexes[i].integer = originalCvarsLegacy[i].integer;
-					cvar_indexes[i].flags = originalCvarsLegacy[i].flags;
+					cvar_indexes[i].value = originalCvars[i].value;
+					cvar_indexes[i].integer = originalCvars[i].integer;
+					cvar_indexes[i].flags = originalCvars[i].flags;
 				}
 			}
 		}
@@ -345,7 +347,6 @@ void UnlockCvars(bool refresh)
 		if (!vidrestartInProgress)
 		{
 			vidrestartInProgress = true;
-			showMenu = false; // CG_KEY_GETCATCHER in menu causes crash otherwise
 			DoSyscall(CG_SENDCONSOLECOMMAND, XorString("vid_restart\n"));
 			return;
 		}
@@ -356,6 +357,13 @@ void UnlockCvars(bool refresh)
 	}
 
 	lastPicmipHackState = cfg.picmipHack;
+}
+void UnlockCvars(bool refresh)
+{
+	if (off::cur.IsEtLegacy())
+		UnlockCvarsInternal<cvar_legacy_t>(refresh);
+	else
+		UnlockCvarsInternal<cvar_t>(refresh);
 }
 void etpro_SpoofGUID(const char *newGuid)
 {
@@ -1165,6 +1173,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			PatchLoadedImages(false);
 			UnlockCvars(true);
 
+			showMenu = false; // CG_KEY_GETCATCHER in menu causes crash otherwise
 			old_reliableSequence = off::cur.clc_reliableSequence();
 		}
 
