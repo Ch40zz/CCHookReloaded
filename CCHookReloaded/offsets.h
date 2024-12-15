@@ -107,6 +107,7 @@ namespace off
 			uintptr_t fs_searchpaths;
 			uintptr_t tr_numImages;
 			uintptr_t tr_images;
+			uintptr_t cvar_indexes;
 
 			bool IsValid()
 			{
@@ -198,6 +199,7 @@ namespace off
 		searchpath_t *&fs_searchpaths() { return *MakeAddress<searchpath_t**>(m_Offsets.fs_searchpaths); }
 		int &tr_numImages() { return *MakeAddress<int*>(m_Offsets.tr_numImages); }
 		image_t **tr_images() { return MakeAddress<image_t**>(m_Offsets.tr_images); }
+		cvar_t *cvar_indexes() { return MakeAddress<cvar_t*>(m_Offsets.cvar_indexes); }
 	};
 
 	inline COffsets offsets[]
@@ -233,6 +235,7 @@ namespace off
 				/*fs_searchpaths =*/ 0x009DAA94,		// "Filesystem call made without initialization\n"
 				/*tr_numImages =*/ 0x0178A684,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x0178A688,
+				/*cvar_indexes =*/ 0x013A9420,			// "Cvar_Get: NULL parameter"
 			}
 		},
 
@@ -260,6 +263,7 @@ namespace off
 				/*fs_searchpaths =*/ 0x00A43B64,		// "Filesystem call made without initialization\n"
 				/*tr_numImages =*/ 0x0017FD7E4,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x0017FD7E8,
+				/*cvar_indexes =*/ 0x01206580,			// "Cvar_Get: NULL parameter"
 			}
 		},
 
@@ -270,25 +274,26 @@ namespace off
 
 			/*Offsets =*/
 			{
-			/*refExport =*/ 0x0146D220,				// "----- Initializing Renderer ----\n", "Couldn't initialize refresh", "cl_paused"
-			/*VM_DllSyscall = 0x000043C2D0,*/			// "VM_Create: bad parms", 8B ? ? ? ? ? 8D ? 24 ? ? FF ? 04 83 C4 04 C3
-			/*VM_Call_vmMain =*/ 0x0043BF48,		// "VM_Call( %i )\n"
-			/*SCR_UpdateScreen =*/ 0x00414440,		// "cmd say "
-			/*currentVM =*/ 0x00A75398,
-			/*cgvm =*/ 0x0146D2E8,					// "VM_Create on cgame failed"
-			/*kbuttons =*/ 0x00894C98,				// "+left" => handler => push offset; call IN_KeyDown
-			/*viewangles =*/ 0x0160B0A8,			// "%f : %f\n"
-			/*clc_challenge =*/ 0x0156C5C8,			// "challenge: %d\n"
-			/*reliableCommands =*/ 0x0156C5DC,		// "Client command overflow"
-			/*clc_reliableSequence =*/ 0x0156C5D4,
-			/*netchan_remoteAddress =*/ 0x015F5284,	// "cl_maxpackets"
-			/*cl_cmds = 0x0160A7E0,*/				// "CL_GetUserCmd: %i >= %i"
-			/*cl_cmdNumber = 0x0160AEE0,*/
-			/*fs_searchpaths =*/ 0x00A43BC4,		// "Filesystem call made without initialization\n"
-			/*tr_numImages =*/ 0x0017FD844,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
-			/*tr_images =*/ 0x0017FD848,
-		}
-	},
+				/*refExport =*/ 0x0146D220,				// "----- Initializing Renderer ----\n", "Couldn't initialize refresh", "cl_paused"
+				/*VM_DllSyscall = 0x000043C2D0,*/			// "VM_Create: bad parms", 8B ? ? ? ? ? 8D ? 24 ? ? FF ? 04 83 C4 04 C3
+				/*VM_Call_vmMain =*/ 0x0043BF48,		// "VM_Call( %i )\n"
+				/*SCR_UpdateScreen =*/ 0x00414440,		// "cmd say "
+				/*currentVM =*/ 0x00A75398,
+				/*cgvm =*/ 0x0146D2E8,					// "VM_Create on cgame failed"
+				/*kbuttons =*/ 0x00894C98,				// "+left" => handler => push offset; call IN_KeyDown
+				/*viewangles =*/ 0x0160B0A8,			// "%f : %f\n"
+				/*clc_challenge =*/ 0x0156C5C8,			// "challenge: %d\n"
+				/*reliableCommands =*/ 0x0156C5DC,		// "Client command overflow"
+				/*clc_reliableSequence =*/ 0x0156C5D4,
+				/*netchan_remoteAddress =*/ 0x015F5284,	// "cl_maxpackets"
+				/*cl_cmds = 0x0160A7E0,*/				// "CL_GetUserCmd: %i >= %i"
+				/*cl_cmdNumber = 0x0160AEE0,*/
+				/*fs_searchpaths =*/ 0x00A43BC4,		// "Filesystem call made without initialization\n"
+				/*tr_numImages =*/ 0x0017FD844,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
+				/*tr_images =*/ 0x0017FD848,
+				/*cvar_indexes =*/ 0x012065E0,			// "Cvar_Get: NULL parameter"
+			}
+		},
 
 		// RTCW MP Pro 1.4 (Not working yet, only for testing)
 		{
@@ -314,6 +319,7 @@ namespace off
 				/*fs_searchpaths =*/ 0x00A6F800,		// "Filesystem call made without initialization\n"
 				/*tr_numImages =*/ 0x01230794,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x01230798,
+				/*cvar_indexes =*/0x00C2E600,			// "Cvar_Get: NULL parameter"
 			}
 		},
 
@@ -341,6 +347,7 @@ namespace off
 				/*fs_searchpaths =*/ 0x0053F2C4,		// "Filesystem call made without initialization\n"
 				/*tr_numImages =*/ 0x031B050C,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x031B0510,
+				/*cvar_indexes =*/ 0x02929460,			// "Cvar_Get: NULL parameter"
 			}
 		},
 
@@ -368,6 +375,7 @@ namespace off
 				/*fs_searchpaths =*/ 0x0053F2E4,		// "Filesystem call made without initialization\n"
 				/*tr_numImages =*/ 0x031B032C,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x031B0330,
+				/*cvar_indexes =*/ 0x02929280,			// "Cvar_Get: NULL parameter"
 			}
 		},
 	};
@@ -421,6 +429,9 @@ namespace off
 		{
 			// FF 75 ? FF 75 ? FF ? 83 C4 44
 			{ XorString("\xFF\x75\x00\xFF\x75\x00\xFF\x00\x83\xC4\x44"), XorString("xx?xx?x?xxx"), CSignature::EMode::AddOffset, 8 },
+
+			// FF 75 ? FF 75 ? FF 55 ? 83 C4 44
+			{ XorString("\xFF\x75\x00\xFF\x75\x00\xFF\x55\x00\x83\xC4\x44"), XorString("xx?xx?xx?xxx"), CSignature::EMode::AddOffset, 9 },
 		};
 		CSignature SCR_UpdateScreen[] = 
 		{
@@ -464,6 +475,9 @@ namespace off
 		{
 			// 8B ? ? ? ? ? 83 C4 ? 8D ? 00 FF FF FF
 			{ XorString("\x8B\x00\x00\x00\x00\x00\x83\xC4\x00\x8D\x00\x00\xFF\xFF\xFF"), XorString("x?????xx?x?xxxx"), CSignature::EMode::ExtractPtr, 2 },
+			
+			// 8B ? ? ? ? ? 83 C4 ? ? ? ? ? ? 8D ? 00 FF FF FF
+			{ XorString("\x8B\x00\x00\x00\x00\x00\x83\xC4\x00\x00\x00\x00\x00\x00\x8D\x00\x00\xFF\xFF\xFF"), XorString("x?????xx??????x?xxxx"), CSignature::EMode::ExtractPtr, 2 },
 		};
 		CSignature netchan_remoteAddress[] = 
 		{
@@ -494,6 +508,11 @@ namespace off
 			// 8B 04 ? ? ? ? ? 83 ? ? ? 74
 			{ XorString("\x8B\x04\x00\x00\x00\x00\x00\x83\x00\x00\x00\x74"), XorString("xx?????x???x"), CSignature::EMode::ExtractPtr, 3 },
 		};
+		CSignature cvar_indexes[] = 
+		{
+			// 6B ? 4C 81 ? ? ? ? ? 3B ? ? ? ? ? 7C
+			{ XorString("\x6B\x00\x4C\x81\x00\x00\x00\x00\x00\x3B\x00\x00\x00\x00\x00\x7C"), XorString("x?xx?????x?????x"), CSignature::EMode::ExtractPtr, 5 },
+		};
 
 
 		cur = offsets[0];
@@ -514,6 +533,7 @@ namespace off
 		off.fs_searchpaths = FindSignature(fs_searchpaths, std::size(fs_searchpaths));
 		off.tr_numImages = FindSignature(tr_numImages, std::size(tr_numImages));
 		off.tr_images = FindSignature(tr_images, std::size(tr_images));
+		off.cvar_indexes = FindSignature(cvar_indexes, std::size(cvar_indexes));
 
 		return cur.UpdateOffsets(off);
 

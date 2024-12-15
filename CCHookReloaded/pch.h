@@ -92,6 +92,8 @@ typedef union _LDR_DLL_NOTIFICATION_DATA {
 
 #define MISSILE_PRESTEP_TIME 50
 
+#define MAX_CVARS 2048
+
 typedef intptr_t (*CL_CgameSystemCalls_t)(intptr_t *args);
 extern CL_CgameSystemCalls_t orig_CL_CgameSystemCalls;
 
@@ -576,6 +578,30 @@ typedef struct
 	uint16_t port;
 	uint64_t scope_id; ///< Needed for IPv6 link-local addresses
 } netadr_legacy_t;
+
+typedef struct cvar_legacy_s
+{
+	char* name;
+	char* string;
+	char* resetString;              ///< cvar_restart will reset to this value
+	char* latchedString;            ///< for CVAR_LATCH vars
+	size_t flags;
+	qboolean modified;              ///< set each time the cvar is changed
+	int modificationCount;          ///< incremented each time the cvar is changed
+	float value;                    ///< atof( string )
+	int integer;                    ///< atoi( string )
+	qboolean validate;
+	qboolean integral;
+	float min;
+	float max;
+	char* description;
+
+	struct cvar_legacy_s* next;
+	struct cvar_legacy_s* prev;
+	struct cvar_legacy_s* hashNext;
+	struct cvar_legacy_s* hashPrev;
+	int hashIndex;
+} cvar_legacy_t;
 
 #pragma pack(push, 1)
 /*struct etpro_command
