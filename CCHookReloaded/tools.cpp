@@ -51,6 +51,8 @@ namespace tools
     void *DetourFunction(BYTE *src, const BYTE *dst, size_t len)
     {
             BYTE *jmp = (BYTE*)VirtualAlloc(0, len+5, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+			if (!jmp)
+				return nullptr;
 
             DWORD dwback;
             VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &dwback);

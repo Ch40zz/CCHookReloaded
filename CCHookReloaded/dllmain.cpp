@@ -1863,6 +1863,21 @@ bool PlaceCGHook()
 					// cmp dword ptr ds:[imm32], imm8
 					TlsIndex = **(DWORD**)&glReadPixels[9];
 				}
+				else if (glReadPixels[6] == 0x90 && glReadPixels[7] == 0xE9)
+				{
+					// nop
+					// jmp <JmpTarget>		; Special parallels (MAC) OpenGL stub
+					uint8_t *JmpTarget = (glReadPixels + 7) + *(int32_t*)(&glReadPixels[8]) + 5;
+
+					disableRendering = false;
+
+					orig_glReadPixels = (glReadPixels_t)JmpTarget;
+
+					DWORD dwOldProt;
+					VirtualProtect(&glReadPixels[8], sizeof(uintptr_t), PAGE_EXECUTE_READWRITE, &dwOldProt);
+					*(uintptr_t*)&glReadPixels[8] = (uintptr_t)((uint8_t*)&hooked_glReadPixels - &glReadPixels[7]) - 5;
+					VirtualProtect(&glReadPixels[8], sizeof(uintptr_t), dwOldProt, &dwOldProt);
+				}
 				else
 				{
 					const auto *idh = (IMAGE_DOS_HEADER*)opengl32;
