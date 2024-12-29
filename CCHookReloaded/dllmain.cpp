@@ -312,15 +312,23 @@ void UnlockCvarsInternal(bool refresh)
 		if (!originalCvars[i].name)
 			originalCvars[i] = cvar_indexes[i];
 
-		if (cfg.cvarUnlocker != lastCvarUnlockerState)
+		if (refresh || cfg.cvarUnlocker != lastCvarUnlockerState)
 		{
 			if (cfg.cvarUnlocker)
+			{
 				cvar_indexes[i].flags &= ~CVAR_CHEAT;
+			}
 			else if (originalCvars[i].name && (originalCvars[i].flags & CVAR_CHEAT))
-				memcpy(&cvar_indexes[i], &originalCvars[i], offsetof(T, next));
+			{
+				cvar_indexes[i].flags = originalCvars[i].flags;
+				cvar_indexes[i].modified = originalCvars[i].modified;
+				cvar_indexes[i].modificationCount = originalCvars[i].modificationCount;
+				cvar_indexes[i].value = originalCvars[i].value;
+				cvar_indexes[i].integer = originalCvars[i].integer;
+			}
 		}
 
-		if (cfg.picmipHack)
+		if (refresh || cfg.picmipHack)
 		{
 			if (!strcmp(cvar_indexes[i].name, XorString("r_picmip")))
 			{
@@ -342,6 +350,7 @@ void UnlockCvarsInternal(bool refresh)
 
 	lastCvarUnlockerState = cfg.cvarUnlocker;
 
+	// Force-reload textures with `r_picmip` set to spoofed value if game was already loaded
 	if (cfg.picmipHack != lastPicmipHackState)
 	{
 		if (!vidrestartInProgress)
