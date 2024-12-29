@@ -328,7 +328,7 @@ void UnlockCvarsInternal(bool refresh)
 			}
 		}
 
-		if (refresh || cfg.picmipHack)
+		if (cfg.picmipHack)
 		{
 			if (!strcmp(cvar_indexes[i].name, XorString("r_picmip")))
 			{
