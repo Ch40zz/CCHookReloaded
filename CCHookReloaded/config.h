@@ -20,6 +20,7 @@ struct SConfig
 	bool playerCorpseChams = true;
 	vec4_t playerVulnRGBA   = { 255, 0, 0,   0 };
 	vec4_t playerInvulnRGBA = { 255, 0, 255, 0 };
+	qhandle_t& playerShader = media.coverShader;
 
 
 	// Visuals

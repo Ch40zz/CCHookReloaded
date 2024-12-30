@@ -7,7 +7,7 @@ struct SMedia
 	qhandle_t pickupModels[11];
 	qhandle_t grassModels[3];
 	qhandle_t weatherSprites[3];
-	qhandle_t whiteShader, coverShader, plainShader, quadShader, plasticShader,
+	qhandle_t whiteShader, coverShader, plainShader, quadShader, crystalShader, plasticShader,
 		onFireShader, railCoreShader, reticleShader, binocShader, nullShader,
 		smokepuffShader, circleShader;
 	qhandle_t landmineIcon, dynamiteIcon, smokeIcon, grenadeIcon, pineappleIcon, 

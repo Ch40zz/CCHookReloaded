@@ -28,6 +28,7 @@
 #include "tools.h"
 #include "engine.h"
 #include "ui.h"
+#include "shaders.h"
 
 #include "config.h"
 #include "offsets.h"
@@ -97,91 +98,12 @@ EMod InitializeMod()
 	media.pickupModels[9] =  DoSyscall(CG_R_REGISTERMODEL, XorString("models/weapons2/fg42/fg42.md3"));
 	media.pickupModels[10] = DoSyscall(CG_R_REGISTERMODEL, XorString("models/multiplayer/mauser/mauser_pickup.md3"));
 
-	XorS(coverShaderText, "%s\n\
-		{\n\
-			cull none\n\
-			deformVertexes wave 100 sin 1.5 0 0 0\n\
-			{\n\
-				map textures/sfx/construction.tga\n\
-				blendfunc GL_SRC_ALPHA GL_ONE\n\
-				rgbgen entity\n\
-				tcGen environment\n\
-				tcmod rotate 30\n\
-				tcmod scroll 1 .1\n\
-			}\n\
-		}\n");
-
-	XorS(plainShaderText, "%s\n\
-		{\n\
-			nomipmaps\n\
-			nofog\n\
-			nopicmip\n\
-			{\n\
-				map *white\n\
-				rgbGen const ( 0 0 0 )\n\
-				blendFunc gl_dst_color gl_zero\n\
-			}\n\
-			{\n\
-				map *white\n\
-				rgbGen entity\n\
-				depthWrite\n\
-			}\n\
-		}\n");
-
-	XorS(quadShaderText, "%s\n\
-		{\n\
-			deformVertexes wave 100 sin 3 0 0 0\n\
-			{\n\
-				map gfx/effects/quad.tga\n\
-				blendfunc GL_ONE GL_ONE\n\
-				rgbgen entity\n\
-				tcGen environment\n\
-				depthWrite\n\
-				tcmod rotate 30\n\
-				tcmod scroll 1 .1\n\
-			}\n\
-		}\n");
-
-	XorS(crystalShaderText, "%s\n\
-		{\n\
-			cull none\n\
-			deformVertexes wave 100 sin 2 0 0 0\n\
-			noPicmip\n\
-			surfaceparm trans\n\
-			{\n\
-				map textures/sfx/construction.tga\n\
-				blendFunc GL_SRC_ALPHA GL_ONE\n\
-				rgbGen entity\n\
-				tcGen environment\n\
-				tcMod scroll 0.025 -0.07625\n\
-			}\n\
-		}\n");
-
-	XorS(plasticShaderText, "%s\n\
-		{\n\
-			deformVertexes wave 100 sin 0 0 0 0\n\
-			{\n\
-				map gfx/effects/fx_white.tga\n\
-				rgbGen entity\n\
-				blendfunc GL_ONE GL_ONE\n\
-			}\n\
-		}\n");
-
-	XorS(circleShaderText, "%s\n\
-		{\n\
-			polygonOffset\n\
-			{\n\
-				map gfx/effects/disk.tga\n\
-				blendFunc GL_SRC_ALPHA GL_ONE\n\
-				rgbGen exactVertex\n\
-			}\n\
-		}");
-
-	media.coverShader = eng::RegisterAndLoadShader(coverShaderText.decrypt(), spoofSeed + 0);
-	media.plainShader = eng::RegisterAndLoadShader(plainShaderText.decrypt(), spoofSeed + 1);
-	media.quadShader = eng::RegisterAndLoadShader(quadShaderText.decrypt(), spoofSeed + 2);
-	media.plasticShader = eng::RegisterAndLoadShader(plasticShaderText.decrypt(), spoofSeed + 3);
-	media.circleShader = eng::RegisterAndLoadShader(circleShaderText.decrypt(), spoofSeed + 4);
+	media.coverShader = eng::RegisterAndLoadShader(XorString(SHADER_COVER_SCRIPT), spoofSeed + 0);
+	media.plainShader = eng::RegisterAndLoadShader(XorString(SHADER_PLAIN_SCRIPT), spoofSeed + 1);
+	media.quadShader = eng::RegisterAndLoadShader(XorString(SHADER_QUAD_SCRIPT), spoofSeed + 2);
+	media.crystalShader = eng::RegisterAndLoadShader(XorString(SHADER_CRYSTAL_SCRIPT), spoofSeed + 3);
+	media.plasticShader = eng::RegisterAndLoadShader(XorString(SHADER_PLASTIC_SCRIPT), spoofSeed + 4);
+	media.circleShader = eng::RegisterAndLoadShader(XorString(SHADER_CIRCLE_SCRIPT), spoofSeed + 5);
 
 	media.railCoreShader = DoSyscall(CG_R_REGISTERSHADERNOMIP, XorString("railCore"));
 	media.onFireShader = DoSyscall(CG_R_REGISTERSHADERNOMIP, XorString("entityOnFire1"));
@@ -698,13 +620,13 @@ intptr_t hooked_CL_CgameSystemCalls(intptr_t *args)
 					DoSyscall(CG_R_ADDREFENTITYTOSCENE, &ent);
 
 					ent.renderfx &= ~(RF_DEPTHHACK | RF_NOSHADOW);
-					ent.customShader = media.coverShader;
+					ent.customShader = cfg.playerShader;
 					Vector4Copy(ci.invuln ? cfg.playerInvulnRGBA : cfg.playerVulnRGBA, ent.shaderRGBA);
 				}
 
 				DoSyscall(CG_R_ADDREFENTITYTOSCENE, &ent);
 
-				ent.customShader = media.coverShader;
+				ent.customShader = cfg.playerShader;
 				Vector4Copy(ci.invuln ? cfg.playerInvulnRGBA : cfg.playerVulnRGBA, ent.shaderRGBA);
 			}
 		}
@@ -1471,7 +1393,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 			static int aimTargetId = -1;
 			bool enableAimbot = (hitscanWeaponBitmap & (1ull << cg_snapshot.ps.weapon)) && 
-				cfg.aimbotAimkey == 0 ? true : (GetKeyState(cfg.aimbotAimkey) & 0x8000);
+				cfg.aimbotAimkey == 0 ? true : (GetKeyState(cfg.aimbotAimkey) & 0x8000) && !showMenu;
 
 			if (!enableAimbot)
 			{

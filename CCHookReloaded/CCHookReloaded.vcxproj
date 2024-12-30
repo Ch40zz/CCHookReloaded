@@ -212,6 +212,7 @@
     <ClInclude Include="offsets.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="sha1.h" />
+    <ClInclude Include="shaders.h" />
     <ClInclude Include="tools.h" />
     <ClInclude Include="ui.h" />
   </ItemGroup>
