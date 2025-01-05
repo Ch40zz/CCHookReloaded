@@ -55,7 +55,7 @@ std::wstring Utf8To16(std::string_view utf8)
 	(void)MultiByteToWideChar(CP_OEMCP, 0, utf8.data(), static_cast<int>(utf8.length()), utf16.data(), static_cast<int>(utf16.length()));
 	return utf16;
 }
-bool Is32BitProcess(HANDLE processHandle)
+bool ProcessIs32Bit(HANDLE processHandle)
 {
 	typedef BOOL(WINAPI* tIsWow64Process)(HANDLE hProcess, PBOOL Wow64Process);
 	tIsWow64Process pIsWow64Process = (tIsWow64Process)GetProcAddress(GetModuleHandleA("kernel32.dll"), "IsWow64Process");
@@ -66,15 +66,38 @@ bool Is32BitProcess(HANDLE processHandle)
 
 	return true;
 }
+bool ProcessHasDepEnabled(HANDLE processHandle)
+{
+	DWORD depFlags;
+	BOOL depPermanent;
+	if (GetProcessDEPPolicy(processHandle, &depFlags, &depPermanent))
+	{
+		if (!(depFlags & PROCESS_DEP_ENABLE))
+			return false;
+	}
+
+	return true;
+}
 HMODULE GetRemoteModuleHandle(HANDLE processHandle, std::wstring_view moduleName)
 {
-	HMODULE moduleHandle = nullptr;
+	static size_t NumRetries = 10;
 
 	HANDLE snapHandle = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetProcessId(processHandle));
 	if (snapHandle == INVALID_HANDLE_VALUE)
 	{
-		ShowError(L"CreateToolhelp32Snapshot failed (%lu)", GetLastError());
-		return nullptr;
+		// It can happen that due to Windows' threaded DLL loading that the PEB->Ldr is not yet valid although it should be.
+		// Simply retry a bunch until the Ldr is finally valid and setup by the system.
+
+		if (NumRetries <= 0)
+		{
+			ShowError(L"CreateToolhelp32Snapshot failed (%lu)", GetLastError());
+			return nullptr;
+		}
+
+		Sleep(100);
+
+		--NumRetries;
+		return GetRemoteModuleHandle(processHandle, moduleName);
 	}
 
 
@@ -88,6 +111,7 @@ HMODULE GetRemoteModuleHandle(HANDLE processHandle, std::wstring_view moduleName
 		return nullptr;
 	}
 
+	HMODULE moduleHandle = nullptr;
 	do
 	{
 		if (!_wcsnicmp(moduleEntry.szModule, moduleName.data(), moduleName.length()))
@@ -107,7 +131,7 @@ bool InjectDllLdrLoadDll(HANDLE processHandle, std::wstring_view dllPath)
 	// Inject shellcode to call LdrLoadDll.
 	// Kernel32 is not yet loaded at this point so we can't go the easy route with LoadLibraryA/W.
 
-	if (!Is32BitProcess(processHandle))
+	if (!ProcessIs32Bit(processHandle))
 	{
 		ShowError(L"InjectDllLdrLoadDll: Target process is not 32-bit");
 		return false;
@@ -183,19 +207,23 @@ bool InjectDllManualMap(HANDLE processHandle, std::wstring_view dllPath)
 {
 	const auto Rpm = [processHandle](void* address, void* buffer, size_t size) -> bool {
 		SIZE_T read;
-		bool result = ReadProcessMemory(processHandle, address, buffer, size, &read);
-		if (!result || read != size)
+		if (!ReadProcessMemory(processHandle, address, buffer, size, &read) || read != size)
+		{
 			ShowError(L"InjectDllManualMap: ReadProcessMemory failed (%lu)", GetLastError());
+			return false;
+		}
 
-		return result;
+		return true;
 	};
 	const auto Wpm = [processHandle](void* address, void* buffer, size_t size) -> bool {
 		SIZE_T read;
-		bool result = WriteProcessMemory(processHandle, address, buffer, size, &read);
-		if (!result || read != size)
+		if (!WriteProcessMemory(processHandle, address, buffer, size, &read) || read != size)
+		{
 			ShowError(L"InjectDllManualMap: WriteProcessMemory failed (%lu)", GetLastError());
+			return false;
+		}
 
-		return result;
+		return true;
 	};
 	const auto Rva2Off = [](void* image, uint32_t rva) -> uint32_t {
 		IMAGE_DOS_HEADER* idh = (IMAGE_DOS_HEADER*)image;
@@ -204,8 +232,7 @@ bool InjectDllManualMap(HANDLE processHandle, std::wstring_view dllPath)
 
 		for (size_t i = 0; i < inh->FileHeader.NumberOfSections; i++)
 		{
-			if (rva >= SectionHeader[i].VirtualAddress &&
-				rva < SectionHeader[i].VirtualAddress + SectionHeader[i].Misc.VirtualSize)
+			if (rva >= SectionHeader[i].VirtualAddress && rva < SectionHeader[i].VirtualAddress + SectionHeader[i].Misc.VirtualSize)
 				return rva - SectionHeader[i].VirtualAddress + SectionHeader[i].PointerToRawData;
 		}
 
@@ -218,17 +245,23 @@ bool InjectDllManualMap(HANDLE processHandle, std::wstring_view dllPath)
 
 		for (size_t i = 0; i < inh->FileHeader.NumberOfSections; i++)
 		{
-			if (off >= SectionHeader[i].PointerToRawData &&
-				off < SectionHeader[i].PointerToRawData + SectionHeader[i].SizeOfRawData)
+			if (off >= SectionHeader[i].PointerToRawData && off < SectionHeader[i].PointerToRawData + SectionHeader[i].SizeOfRawData)
 				return off - SectionHeader[i].PointerToRawData + SectionHeader[i].VirtualAddress;
 		}
 
 		return 0;
 	};
 
-	if (!Is32BitProcess(processHandle))
+	if (!ProcessIs32Bit(processHandle))
 	{
 		ShowError(L"InjectDllManualMap: Target process is not 32-bit");
+		return false;
+	}
+
+	// Let the process setup Ldr in advance
+	if (!InjectDllLdrLoadDll(processHandle, L"kernel32.dll"))
+	{
+		ShowError(L"InjectDllManualMap: Failed to load kernel32.dll in remote process (%lu)", GetLastError());
 		return false;
 	}
 
@@ -258,12 +291,15 @@ bool InjectDllManualMap(HANDLE processHandle, std::wstring_view dllPath)
 		return false;
 	}
 
+	CloseHandle(fileHandle);
+
 	auto* idh = (IMAGE_DOS_HEADER*)pImage;
 	auto* inh = (IMAGE_NT_HEADERS*)(pImage + idh->e_lfanew);
 	auto* ish = IMAGE_FIRST_SECTION(inh);
 
-	// Allocate the remote image memory if not already done
-	void *pMemory = VirtualAllocEx(processHandle, nullptr, inh->OptionalHeader.SizeOfImage, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	// Allocate the remote image memory
+	const size_t RandomSizeOffset = (rand() % 64) * 0x1000;
+	void *pMemory = VirtualAllocEx(processHandle, nullptr, inh->OptionalHeader.SizeOfImage + RandomSizeOffset, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	if (!pMemory)
 	{
 		ShowError(L"InjectDllManualMap: VirtualAllocEx failed to allocate the image (%lu)", GetLastError());
@@ -404,15 +440,47 @@ bool InjectDllManualMap(HANDLE processHandle, std::wstring_view dllPath)
 		}
 	}
 
-	// Overwrite start of PE Header  with Shellcode to call DllMain with correct params
+	const bool hasDepEnabled = ProcessHasDepEnabled(processHandle);
+	for (size_t i = 0; i < inh->FileHeader.NumberOfSections; i++)
+	{
+		// Only make sections executable if DEP is disabled to better hide the cheat memory
+		const bool execute = (ish[i].Characteristics & IMAGE_SCN_MEM_EXECUTE) && hasDepEnabled;
+		const bool write = (ish[i].Characteristics & IMAGE_SCN_MEM_WRITE);
+
+		DWORD allocationProt;
+		if (execute && write)
+			allocationProt = PAGE_EXECUTE_READWRITE;
+		else if (execute)
+			allocationProt = PAGE_EXECUTE_READ;
+		else if (write)
+			allocationProt = PAGE_READWRITE;
+		else
+			allocationProt = PAGE_READONLY;
+
+		DWORD oldProt;
+		if (!VirtualProtectEx(processHandle, (uint8_t*)pMemory + ish[i].VirtualAddress, ish[i].Misc.VirtualSize, allocationProt, &oldProt))
+		{
+			ShowError(L"Failed to re-protect memory section (%lu)", GetLastError());
+			return false;
+		}
+	}
+
+	// Allocate Shellcode to call DllMain with correct params
+
+	void *pShellcode = VirtualAllocEx(processHandle, nullptr, 0x1000, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	if (!pShellcode)
+	{
+		ShowError(L"InjectDllManualMap: VirtualAllocEx failed to allocate the shellcode (%lu)", GetLastError());
+		return false;
+	}
 
 	uint8_t dllMainShellcode[] = {
-		0x68, 0, 0, 0, 0,
-		0x68, 0, 0, 0, 0,
-		0x68, 0, 0, 0, 0,
-		0xB8, 0, 0, 0, 0,
-		0xFF, 0xD0,
-		0xC3
+		0x68, 0, 0, 0, 0,	// push <imm32>
+		0x68, 0, 0, 0, 0,	// push <imm32>
+		0x68, 0, 0, 0, 0,	// push <imm32>
+		0xB8, 0, 0, 0, 0,	// mov eax, <imm32>
+		0xFF, 0xD0,			// jmp eax
+		0xC3				// ret
 	};
 
 	*(uint32_t*)(dllMainShellcode + 0x01) = 0;
@@ -420,10 +488,10 @@ bool InjectDllManualMap(HANDLE processHandle, std::wstring_view dllPath)
 	*(uint32_t*)(dllMainShellcode + 0x0B) = (uintptr_t)pMemory;
 	*(uint32_t*)(dllMainShellcode + 0x10) = (uintptr_t)pMemory + inh->OptionalHeader.AddressOfEntryPoint;
 
-	if (!Wpm(pMemory, dllMainShellcode, sizeof(dllMainShellcode)))
+	if (!Wpm(pShellcode, dllMainShellcode, sizeof(dllMainShellcode)))
 		return false;
 
-	const HANDLE remoteThread = CreateRemoteThread(processHandle, nullptr, 0, (LPTHREAD_START_ROUTINE)pMemory, nullptr, 0, nullptr);
+	const HANDLE remoteThread = CreateRemoteThread(processHandle, nullptr, 0, (LPTHREAD_START_ROUTINE)pShellcode, nullptr, 0, nullptr);
 	if (!remoteThread)
 	{
 		ShowError(L"InjectDllLdrLoadDll: Failed to create remote thread!");
@@ -439,12 +507,8 @@ bool InjectDllManualMap(HANDLE processHandle, std::wstring_view dllPath)
 		return false;
 	}
 
-	memset(dllMainShellcode, 0, sizeof(dllMainShellcode));
-	if (!Wpm(pMemory, dllMainShellcode, sizeof(dllMainShellcode)))
-		return false;
-
 	(void)CloseHandle(remoteThread);
-	(void)CloseHandle(fileHandle);
+	(void)VirtualFreeEx(processHandle, pShellcode, 0, MEM_RELEASE);
 	(void)VirtualFree(pImage, 0, MEM_RELEASE);
 
 	return true;
@@ -457,6 +521,8 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 	   2. Inject DLL with the selected method
 	   3. Resume process
 	*/
+
+	srand(GetTickCount());
 
 	wchar_t etExePath[MAX_PATH + 1] = { L"et.exe" };
 	int injectionMethod = 0;
