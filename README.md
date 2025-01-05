@@ -143,13 +143,7 @@ Now the client will be able to use the unpure pak file without the server even k
 The biggest improvement right now would be creating weapon and event lists for each supported mod and fall back to the default ET implementation only if the mod is unknown.
 As it currently stands, many mods have additional and/or removed weapons, which leads to some code not working correctly on some mods.
 This however is pretty trivial and might be done soon.  
-Another simple improvement would be the injector. The injector is currently using `LdrLoadDll()` to inject the dll.
-It is therefore easily visible in the Ldr module list. This code should probably be swapped out with a manual mapping implementation.
-However, right now no mod detects the cheat even using `LdrLoadDll()`.  
 Another already mentioned improvement would be adding a more generic HWID spoofing by directly hooking the Windows APIs in question.
 This hasn't be done yet because the goal of this cheat was to not modify any read-only data.  
-A more obvious missing feature is menu to view, enable/disable or customize certain features dynamically ingame.
-I decided against adding a menu because it adds quite a lot of code that was unnecessary for showing the main hooking techniques.  
 Lastly, the aimbot prediction is really just rudimentary and should be replaced with some more advanced techniques.
 One big improvement would be the use of backtracking as it is done nowadays for quake (source) based such as Counter-Strike.
-
