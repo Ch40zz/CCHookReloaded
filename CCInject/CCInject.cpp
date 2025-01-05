@@ -508,7 +508,7 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 		return 1;
 	}
 
-	if (!NT_SUCCESS(ResumeThread(pi.hThread)))
+	if (ResumeThread(pi.hThread) == ~0ul)
 	{
 		ShowError(L"Failed to resume the process (%lu)", GetLastError());
 		TerminateProcess(pi.hProcess, 1);
