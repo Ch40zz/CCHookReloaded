@@ -34,6 +34,9 @@ HANDLE GetParentProcess()
 }
 PPROC_THREAD_ATTRIBUTE_LIST CreatePpidSpoofedProcAttributeList(HANDLE *pSpoofedParentHandle)
 {
+	if (!pSpoofedParentHandle || !*pSpoofedParentHandle)
+		return nullptr;
+
 	SIZE_T attributeListSize = 0;
 	(void)InitializeProcThreadAttributeList(nullptr, 1, 0, &attributeListSize);
 
@@ -515,8 +518,10 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 		return 1;
 	}
 
-	DeleteProcThreadAttributeList(si.lpAttributeList);
-	(void)CloseHandle(parentProcessHandle);
+	if (si.lpAttributeList)
+		DeleteProcThreadAttributeList(si.lpAttributeList);
+	if (parentProcessHandle)
+		(void)CloseHandle(parentProcessHandle);
 	(void)CloseHandle(pi.hThread);
 	(void)CloseHandle(pi.hProcess);
 
