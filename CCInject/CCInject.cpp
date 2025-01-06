@@ -527,7 +527,15 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 	wchar_t etExePath[MAX_PATH + 1] = { L"et.exe" };
 	int injectionMethod = 0;
 
-	const std::filesystem::path cfgPath = GetExePath().replace_extension(L".ini");
+	const auto cfgPath = GetExePath().replace_extension(L".ini");
+	const auto dllPath = GetExePath().replace_extension(L".dll");
+
+	if (!std::filesystem::exists(dllPath))
+	{
+		ShowError(L"Failed to find the cheat dll. Make sure it was compiled and rename it to '%s'", dllPath.filename().c_str());
+		return 1;
+	}
+
 	if (std::filesystem::exists(cfgPath))
 	{
 		GetPrivateProfileStringW(L"CCInject", L"EtExePath", etExePath, etExePath, std::size(etExePath) - 1, cfgPath.c_str());
@@ -554,23 +562,22 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 		WritePrivateProfileStringW(L"CCInject", L"InjectionMethod", std::to_wstring(injectionMethod).c_str(), cfgPath.c_str());
 	}
 
+	const std::filesystem::path etExePathFs = { etExePath };
 	
 	PROCESS_INFORMATION pi = {};
 	STARTUPINFOEXW si = { sizeof(si) };
 	HANDLE parentProcessHandle = GetParentProcess();
 	si.lpAttributeList = CreatePpidSpoofedProcAttributeList(&parentProcessHandle);
 
-	std::filesystem::path etExePathFs = { etExePath };
 	if (!CreateProcessW(nullptr, etExePath, nullptr, nullptr, false, CREATE_SUSPENDED | EXTENDED_STARTUPINFO_PRESENT, nullptr, etExePathFs.parent_path().c_str(), &si.StartupInfo, &pi))
 	{
 		ShowError(L"Failed to create process (%lu)", GetLastError());
 		return 1;
 	}
 
-	const std::wstring dllPath = GetExePath().replace_extension(L".dll").wstring();
 	const bool success = injectionMethod == 0
-					? InjectDllLdrLoadDll(pi.hProcess, dllPath)
-					: InjectDllManualMap(pi.hProcess, dllPath);
+					? InjectDllLdrLoadDll(pi.hProcess, dllPath.c_str())
+					: InjectDllManualMap(pi.hProcess, dllPath.c_str());
 	if (!success)
 	{
 		TerminateProcess(pi.hProcess, 1);
