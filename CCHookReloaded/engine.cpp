@@ -275,10 +275,8 @@ namespace eng
 	}
 	bool AimAtTarget(const vec3_t target)
 	{
-		auto &localClient = cgs_clientinfo[cg_snapshot.ps.clientNum];
-
 		vec3_t predictVieworg;
-		VectorMA(cg_refdef.vieworg, cg_frametime / 1000.0f, localClient.velocity, predictVieworg);
+		VectorMA(cg_refdef.vieworg, cg_frametime / 1000.0f, cg_snapshot.ps.velocity, predictVieworg);
 
 		vec3_t dir, ang;
 		VectorSubtract(target, predictVieworg, dir);

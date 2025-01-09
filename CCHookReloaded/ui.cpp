@@ -371,8 +371,9 @@ namespace ui
 			DrawCheckbox(menuX + 10, menuY + 55, XorString("Sticky Auto-Reset"), &cfg.aimbotStickyAutoReset);
 			DrawCheckbox(menuX + 10, menuY + 65, XorString("Lock Viewangles"), &cfg.aimbotLockViewangles);
 			DrawCheckbox(menuX + 10, menuY + 75, XorString("Autoshoot"), &cfg.aimbotAutoshoot);
-			DrawCheckbox(menuX + 10, menuY + 85, XorString("Anti-Lagcompensation"), &cfg.aimbotAntiLagCompensation);
-			DrawCheckbox(menuX + 10, menuY + 95, XorString("Human Aim"), &cfg.aimbotHumanAim);
+			DrawCheckbox(menuX + 10, menuY + 85, XorString("Velocity Prediction"), &cfg.aimbotVelocityPrediction);
+			DrawCheckbox(menuX + 10, menuY + 95, XorString("Ping Prediction"), &cfg.aimbotPingPrediction);
+			DrawCheckbox(menuX + 10, menuY + 105, XorString("Human Aim"), &cfg.aimbotHumanAim);
 			break;
 		case 1: // Visuals
 			DrawCheckbox(menuX + 10, menuY + 35, XorString("Scoped Walk"), &cfg.scopedWalk);
@@ -409,6 +410,7 @@ namespace ui
 			DrawCheckbox(menuX + 10, menuY + 75, XorString("Clean Screenshots"), &cfg.cleanScreenshots);
 			DrawCheckbox(menuX + 10, menuY + 85, XorString("CVAR Unlocker (Caution)"), &cfg.cvarUnlocker);
 			DrawCheckbox(menuX + 10, menuY + 95, XorString("PicMip Hack (Visible on Screenshots)"), &cfg.picmipHack);
+			DrawCheckbox(menuX + 10, menuY + 105, XorString("Bunny Hop"), &cfg.bunnyHop);
 			break;
 		}
 

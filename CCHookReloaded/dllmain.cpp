@@ -884,6 +884,15 @@ intptr_t hooked_CL_CgameSystemCalls(intptr_t *args)
 				}
 			}
 
+			// Entity list never contains our own entity/player, manually populate the info
+			auto& ci = cgs_clientinfo[cg_snapshot.ps.clientNum];
+			ci.valid = true;
+			ci.invuln = !!(cg_snapshot.ps.powerups[PW_INVULNERABLE]);
+			ci.flags = cg_snapshot.ps.eFlags;
+			ci.weapId = cg_snapshot.ps.weapon;
+			VectorCopy(cg_snapshot.ps.origin, ci.origin);
+			VectorCopy(cg_snapshot.ps.velocity, ci.velocity);
+
 			eng::CG_BuildSolidList();
 		}
 		
@@ -1406,8 +1415,18 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 					//VectorSubtract(aimPos, ci.interOrigin, aimPos);
 					//VectorAdd(aimPos, ci.origin, aimPos);
 
-					if (cfg.aimbotAntiLagCompensation)
-						VectorMA(aimPos, -(cg_frametime + cg_snapshot.ping/2) / 1000.0f, ci.velocity, aimPos);
+					// A value of 1.0 here means predict 1 second into the future based on current player velocity
+					float PredictionFactor = 0.0f;
+
+					// Look ahead 1 frame of velocity
+					if (cfg.aimbotVelocityPrediction)
+						PredictionFactor += -cg_frametime / 1000.0f;
+
+					// Look ahead half the local player ping (latency)
+					if (cfg.aimbotPingPrediction)
+						PredictionFactor += -(cg_snapshot.ping / 2) / 1000.0f;
+
+					VectorMA(aimPos, PredictionFactor, ci.velocity, aimPos);
 				};
 				auto GetAimPos = [&](SClientInfo &ci, vec3_t aimPos, bool traceBox, bool traceHead) -> bool {
 					if (!ci.valid)
@@ -1750,6 +1769,25 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			}
 		}
 
+		if (cfg.bunnyHop)
+		{
+			vec3_t floorPos;
+			VectorCopy(cg_refdef.vieworg, floorPos);
+			floorPos[2] -= 100;
+
+			trace_t trace;
+			eng::CG_Trace(&trace, cg_refdef.vieworg, nullptr, nullptr, floorPos, cg_snapshot.ps.clientNum, CONTENTS_SOLID);
+			if (trace.fraction < 1.0f)
+			{
+				if (GetKeyState(VK_SPACE) & 0x8000)
+					DoSyscall(CG_SENDCONSOLECOMMAND, XorString("+moveup\n"));
+			}
+			else
+			{
+				DoSyscall(CG_SENDCONSOLECOMMAND, XorString("-moveup\n"));
+			}
+		}
+
 		for (size_t i = 0; i < std::size(cg_entities); i++)
 			cg_entities[i].reType = RT_MAX_REF_ENTITY_TYPE;
 
@@ -1902,30 +1940,25 @@ void hooked_EndFrame(int *frontEndMsec, int *backEndMsec)
 		for (size_t i = 0; i < 18; i++)
 			newEtKey[i + 10] = '0' + (tools::Rand() % 10);
 
-		char etDir[MAX_PATH + 1], backupPath[MAX_PATH + 1];
-		uint32_t len = GetModuleFileNameA(GetModuleHandleA(nullptr), etDir, sizeof(etDir));
+		const auto etInstallPath = tools::GetModulePath(nullptr).parent_path();
+		const auto etKeyPath = etInstallPath / "etmain" / "etkey";
+		const auto etBackupKeyPath = etInstallPath / "etmain" / ("etkey_" + std::to_string(GetTickCount()));
+		std::filesystem::copy_file(etKeyPath, etBackupKeyPath);
 
-		for(; len > 0; len--)
+		HANDLE etkeyHandle = CreateFileW(etKeyPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, CREATE_ALWAYS, 0, nullptr);
+		if (etkeyHandle != INVALID_HANDLE_VALUE)
 		{
-			if (etDir[len - 1] == '\\' || etDir[len - 1] == '/')
-			{
-				etDir[len - 1] = '\0';
-				break;
-			}
+			WriteFile(etkeyHandle, newEtKey, 28, nullptr, nullptr);
+			CloseHandle(etkeyHandle);
 		}
 
-		strcat_s(etDir, XorString("\\etmain\\etkey"));
+		// Remove trace/guid files (with backup just in case)
+		const auto modPath = tools::GetModulePath(GetModuleHandleA(XorString("cgame_mp_x86.dll"))).parent_path();
 
-		// Backup the old key
-		sprintf_s(backupPath, XorString("%s_%X"), etDir, GetTickCount());
-		CopyFileA(etDir, backupPath, true);
-
-		FILE *etkey = fopen(etDir, XorString("w"));
-		if (etkey)
-		{
-			fwrite((void*)newEtKey, 1, 28, etkey);
-			fclose(etkey);
-		}
+		std::error_code ec;
+		std::filesystem::rename(modPath / "nkey.dat", modPath / "nkey.dat.bak", ec);
+		std::filesystem::rename(modPath / "silent.dat", modPath / "silent.dat.bak", ec);
+		std::filesystem::rename(modPath / "etguid.dat", modPath / "etguid.dat.bak", ec);
 
 		char reconnectCommand[96];
 		strcpy_s(reconnectCommand, XorString("pb_myguid; net_port 27???; net_restart; vid_restart; pb_myguid; reconnect"));
@@ -1935,11 +1968,12 @@ void hooked_EndFrame(int *frontEndMsec, int *backEndMsec)
 				reconnectCommand[i] = '0' + (tools::Rand() % 10);
 		}
 
-		HWND consoleTextbox = FindWindowExA(FindWindowA(nullptr, 
-			off::cur.IsEtLegacy() ? XorString("ET: Legacy Console") : XorString("ET Console")), nullptr, XorString("Edit"), 0);
+		HWND consoleTextbox = FindWindowExA(
+			FindWindowA(off::cur.IsEtLegacy() ? XorString("ET: Legacy WinConsole") : XorString("ET WinConsole"), nullptr),
+			nullptr, XorString("Edit"), 0);
 
 		SendMessageA(consoleTextbox, WM_SETTEXT, 0, (LPARAM)reconnectCommand);
-		SendMessageA(consoleTextbox, WM_CHAR, 13, 0); // Simulate Enter
+		SendMessageA(consoleTextbox, WM_CHAR, '\r', 0); // Simulate Enter
 	}
 
 	// Hooking at this stage can be detected by an Anti-Cheat (and ETPro actually does) so do not do it here

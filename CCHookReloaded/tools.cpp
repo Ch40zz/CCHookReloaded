@@ -69,50 +69,39 @@ namespace tools
 
             return jmp - len;
     }
+	std::filesystem::path GetModulePath(HMODULE mod)
+	{
+		wchar_t exePath[MAX_PATH + 1];
+		GetModuleFileNameW(mod, exePath, std::size(exePath) - 1);
+		return exePath;
+	}
 	EMod GetETMod(char *_modName)
 	{
 		HMODULE cgame = GetModuleHandleA(XorString("cgame_mp_x86.dll"));
 		if (!cgame)
 			return EMod::None;
 
-		char modDir[MAX_PATH + 1], modName[MAX_PATH + 1];
-		uint32_t len = GetModuleFileNameA(cgame, modDir, sizeof(modDir));
-
-		for(bool foundEnd = false; len > 0; len--)
-		{
-			if (modDir[len - 1] == '\\' || modDir[len - 1] == '/')
-			{
-				if (!foundEnd)
-				{
-					foundEnd = true;
-					modDir[len - 1] = '\0';
-				}
-				else
-				{
-					strcpy_s(modName, modDir + len);
-					break;
-				}
-			}
-		}
+		const auto modPath = GetModulePath(cgame).parent_path();
+		const auto modName = modPath.filename().string();
 
 		if (_modName)
-			strcpy(_modName, modName);
+			strcpy(_modName, modName.c_str());
 
-		if (!_stricmp(modName, XorString("etmain")))
+		if (!_stricmp(modName.c_str(), XorString("etmain")))
 			return EMod::EtMain;
-		if (!_stricmp(modName, XorString("etpub")))
+		if (!_stricmp(modName.c_str(), XorString("etpub")))
 			return EMod::EtPub;
-		if (!_stricmp(modName, XorString("etpro")))
+		if (!_stricmp(modName.c_str(), XorString("etpro")))
 			return EMod::EtPro;
-		if (!_stricmp(modName, XorString("jaymod")))
+		if (!_stricmp(modName.c_str(), XorString("jaymod")))
 			return EMod::JayMod;
-		if (!_stricmp(modName, XorString("nitmod")))
+		if (!_stricmp(modName.c_str(), XorString("nitmod")))
 			return EMod::Nitmod;
-		if (!_stricmp(modName, XorString("nq")))
+		if (!_stricmp(modName.c_str(), XorString("nq")))
 			return EMod::NoQuarter;
-		if (!_stricmp(modName, XorString("silent")))
+		if (!_stricmp(modName.c_str(), XorString("silent")))
 			return EMod::Silent;
-		if (!_stricmp(modName, XorString("legacy")))
+		if (!_stricmp(modName.c_str(), XorString("legacy")))
 			return EMod::Legacy;
 
 		return EMod::Unknown;

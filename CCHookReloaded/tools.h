@@ -7,6 +7,7 @@ namespace tools
 
 	uint8_t *FindPattern(uint8_t *start_pos, size_t search_len, const uint8_t *pattern, const char *mask);
 	void* DetourFunction(BYTE* src, const BYTE* dst, size_t len);
+	std::filesystem::path GetModulePath(HMODULE mod);
 	EMod GetETMod(char *_modName);
 	bool UnlockPak();
 	char *Info_ValueForKeyInbuff(char *s, const char *key);

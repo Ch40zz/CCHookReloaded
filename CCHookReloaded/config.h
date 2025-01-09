@@ -43,7 +43,8 @@ struct SConfig
 	bool aimbotStickyAutoReset = true;
 	bool aimbotLockViewangles = true;
 	bool aimbotAutoshoot = false;
-	bool aimbotAntiLagCompensation = false;
+	bool aimbotVelocityPrediction = false;
+	bool aimbotPingPrediction = false;
 	bool aimbotHumanAim = false;
 	float aimbotHumanFovX = 10.0f;
 	float aimbotHumanFovY = 15.0f;
@@ -71,6 +72,7 @@ struct SConfig
 	bool cleanScreenshots = true;
 	bool cvarUnlocker = false; // Might be detected by some Anti-Cheats
 	bool picmipHack = false; // Visible on Screenshots
+	bool bunnyHop = true;
 
 
 	// ESP

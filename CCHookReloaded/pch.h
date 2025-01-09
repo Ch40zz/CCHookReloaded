@@ -21,6 +21,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 // Include ET SDK (2.60b)
 #include "etsdk.h"
