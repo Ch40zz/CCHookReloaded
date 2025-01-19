@@ -1054,7 +1054,6 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 		_cgvm->entryPoint = orig_vmMain;
 
 		// Spoof the return address when calling "orig_vmMain" to make sure ACs don't easily detect our hook (e.g. as ETPro does).
-		// NOTE: This is not supported for ET:Legacy but support can be added if required.
 		intptr_t result;
 		switch (off::cur.VmSpoofType())
 		{
@@ -1063,6 +1062,9 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			break;
 		case off::COffsets::EVmSpoofType::Call12_Steam:
 			result = SpoofCall12_Steam(off::cur.VM_Call_vmMain(), (uintptr_t)orig_vmMain, _id, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9, _a10, _a11, _a12, 0, 0, 0, 0);
+			break;
+		case off::COffsets::EVmSpoofType::Call16:
+			result = SpoofCall16(off::cur.VM_Call_vmMain(), (uintptr_t)orig_vmMain, _id, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9, _a10, _a11, _a12, _a13, _a14, _a15, _a16, 0, 0, off::cur.security_cookie(), 0);
 			break;
 		default:
 			result = orig_vmMain(_id, _a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9, _a10, _a11, _a12, _a13, _a14, _a15, _a16);

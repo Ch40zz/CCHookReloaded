@@ -89,6 +89,7 @@ namespace off
 			None,
 			Call12,
 			Call12_Steam,
+			Call16,
 		};
 
 		struct SOffsets
@@ -108,6 +109,7 @@ namespace off
 			uintptr_t tr_numImages;
 			uintptr_t tr_images;
 			uintptr_t cvar_indexes;
+			uintptr_t security_cookie;
 
 			bool IsValid()
 			{
@@ -200,6 +202,7 @@ namespace off
 		int &tr_numImages() { return *MakeAddress<int*>(m_Offsets.tr_numImages); }
 		image_t **tr_images() { return MakeAddress<image_t**>(m_Offsets.tr_images); }
 		cvar_t *cvar_indexes() { return MakeAddress<cvar_t*>(m_Offsets.cvar_indexes); }
+		uintptr_t &security_cookie() { return *MakeAddress<uintptr_t*>(m_Offsets.security_cookie); }
 	};
 
 	inline COffsets offsets[]
@@ -207,7 +210,7 @@ namespace off
 		// <Reserved for dynamic offsets>
 		{
 			/*m_Timedatestamp =*/ ~1ul, 
-			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::None,
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::Call16,
 			/*Offsets =*/ {}
 		},
 
@@ -236,6 +239,7 @@ namespace off
 				/*tr_numImages =*/ 0x0178A684,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x0178A688,
 				/*cvar_indexes =*/ 0x013A9420,			// "Cvar_Get: NULL parameter"
+				/*security_cookie =*/ ~0ul,
 			}
 		},
 
@@ -264,6 +268,7 @@ namespace off
 				/*tr_numImages =*/ 0x0017FD7E4,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x0017FD7E8,
 				/*cvar_indexes =*/ 0x01206580,			// "Cvar_Get: NULL parameter"
+				/*security_cookie =*/ ~0ul,
 			}
 		},
 
@@ -292,6 +297,7 @@ namespace off
 				/*tr_numImages =*/ 0x0017FD844,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x0017FD848,
 				/*cvar_indexes =*/ 0x012065E0,			// "Cvar_Get: NULL parameter"
+				/*security_cookie =*/ ~0ul,
 			}
 		},
 
@@ -320,13 +326,14 @@ namespace off
 				/*tr_numImages =*/ 0x01230794,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x01230798,
 				/*cvar_indexes =*/0x00C2E600,			// "Cvar_Get: NULL parameter"
+				/*security_cookie =*/ ~0ul,
 			}
 		},
 
 		// ET:Legacy 2.79.0
 		{
 			/*m_Timedatestamp =*/ 0x61C4B0CA,
-			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::None,
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::Call16,
 
 			/*Offsets =*/
 			{
@@ -348,13 +355,14 @@ namespace off
 				/*tr_numImages =*/ 0x031B050C,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x031B0510,
 				/*cvar_indexes =*/ 0x02929460,			// "Cvar_Get: NULL parameter"
+				/*security_cookie =*/ 0x004D0674,
 			}
 		},
 
 		// ET:Legacy 2.80.0
 		{
 			/*m_Timedatestamp =*/ 0x6251C920,
-			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::None,
+			/*m_VmSpoofType =*/ COffsets::EVmSpoofType::Call16,
 
 			/*Offsets =*/
 			{
@@ -376,6 +384,7 @@ namespace off
 				/*tr_numImages =*/ 0x031B032C,			// "R_CreateImage: MAX_DRAWIMAGES hit\n"
 				/*tr_images =*/ 0x031B0330,
 				/*cvar_indexes =*/ 0x02929280,			// "Cvar_Get: NULL parameter"
+				/*security_cookie =*/ 0x004D0684,
 			}
 		},
 	};
@@ -406,7 +415,7 @@ namespace off
 
 	static inline bool RetrieveDynamic()
 	{
-#define FindSignature(sigs, count) _FindSignature(sigs, count, XorString(#sigs))
+#define FindSignature(sigs) _FindSignature(sigs, std::size(sigs), XorString(#sigs))
 		auto _FindSignature = [](const CSignature *sigs, size_t count, const char *name) -> uintptr_t {
 			for (size_t i = 0; i < count; i++)
 			{
@@ -513,27 +522,36 @@ namespace off
 			// 6B ? 4C 81 ? ? ? ? ? 3B ? ? ? ? ? 7C
 			{ XorString("\x6B\x00\x4C\x81\x00\x00\x00\x00\x00\x3B\x00\x00\x00\x00\x00\x7C"), XorString("x?xx?????x?????x"), CSignature::EMode::ExtractPtr, 5 },
 		};
+		CSignature security_cookie[] =
+		{
+			// 55 8B EC 81 EC ? ? ? ? A1 ? ? ? ? 33 C5
+			{ XorString("\x55\x8B\xEC\x81\xEC\x00\x00\x00\x00\xA1\x00\x00\x00\x00\x33\xC5"), XorString("xxxxx????x????xx"), CSignature::EMode::ExtractPtr, 10 },
+			
+			// 3B 0D ? ? ? ? 75 01 C3 E9
+			{ XorString("\x3B\x0D\x00\x00\x00\x00\x75\x01\xC3\xE9"), XorString("xx????xxxx"), CSignature::EMode::ExtractPtr, 2 },
+		};
 
 
 		cur = offsets[0];
 		cur.Init();
 
 		COffsets::SOffsets off;
-		off.refExport = FindSignature(refExport, std::size(refExport));
-		off.VM_Call_vmMain = FindSignature(VM_Call_vmMain, std::size(VM_Call_vmMain));
-		off.SCR_UpdateScreen = FindSignature(SCR_UpdateScreen, std::size(SCR_UpdateScreen));
-		off.currentVM = FindSignature(currentVM, std::size(currentVM));
-		off.cgvm = FindSignature(cgvm, std::size(cgvm));
-		off.kbuttons = FindSignature(kbuttons, std::size(kbuttons));
-		off.viewangles = FindSignature(viewangles, std::size(viewangles));
-		off.clc_challenge = FindSignature(clc_challenge, std::size(clc_challenge));
-		off.reliableCommands = FindSignature(reliableCommands, std::size(reliableCommands));
-		off.clc_reliableSequence = FindSignature(clc_reliableSequence, std::size(clc_reliableSequence));
-		off.netchan_remoteAddress = FindSignature(netchan_remoteAddress, std::size(netchan_remoteAddress));
-		off.fs_searchpaths = FindSignature(fs_searchpaths, std::size(fs_searchpaths));
-		off.tr_numImages = FindSignature(tr_numImages, std::size(tr_numImages));
-		off.tr_images = FindSignature(tr_images, std::size(tr_images));
-		off.cvar_indexes = FindSignature(cvar_indexes, std::size(cvar_indexes));
+		off.refExport = FindSignature(refExport);
+		off.VM_Call_vmMain = FindSignature(VM_Call_vmMain);
+		off.SCR_UpdateScreen = FindSignature(SCR_UpdateScreen);
+		off.currentVM = FindSignature(currentVM);
+		off.cgvm = FindSignature(cgvm);
+		off.kbuttons = FindSignature(kbuttons);
+		off.viewangles = FindSignature(viewangles);
+		off.clc_challenge = FindSignature(clc_challenge);
+		off.reliableCommands = FindSignature(reliableCommands);
+		off.clc_reliableSequence = FindSignature(clc_reliableSequence);
+		off.netchan_remoteAddress = FindSignature(netchan_remoteAddress);
+		off.fs_searchpaths = FindSignature(fs_searchpaths);
+		off.tr_numImages = FindSignature(tr_numImages);
+		off.tr_images = FindSignature(tr_images);
+		off.cvar_indexes = FindSignature(cvar_indexes);
+		off.security_cookie = FindSignature(security_cookie);
 
 		return cur.UpdateOffsets(off);
 
