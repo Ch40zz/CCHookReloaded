@@ -1208,7 +1208,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 		// Player ESP
 		for (int i = 0; i < MAX_CLIENTS; i++)
 		{
-			auto &ci = cgs_clientinfo[i];
+			const auto &ci = cgs_clientinfo[i];
 
 			if (!ci.valid)
 				continue;
@@ -1226,6 +1226,18 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			if (!VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_head")), intptr_t(&orTmp)))
 				continue;
 
+			bool isPlayerVisible = true;
+
+			// Visible check for ESP
+			if (cfg.visibleCheck)
+			{
+				vec3_t visOut;
+				vec3_t bboxMins = { -18, -18, -24 };
+				vec3_t bboxMaxs = { 18,  18,  48 };
+				VectorAdd(bboxMins, ci.interOrigin, bboxMins);
+				VectorAdd(bboxMaxs, ci.interOrigin, bboxMaxs);
+				isPlayerVisible = eng::IsBoxVisible(cg_refdef.vieworg, bboxMins, bboxMaxs, 0.3f, visOut, ci.id);
+			}
 
 			// Head Bounding Box ESP
 			if (cfg.headBbox)
@@ -1248,7 +1260,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 					VectorAdd(mins, offset, mins);
 					VectorAdd(maxs, offset, maxs);
 
-					ui::DrawBox3D(mins, maxs, 1.0f, colorGreen);
+					ui::DrawBox3D(mins, maxs, 1.0f, ui::AdjustAlpha(colorGreen, 0.3f, !isPlayerVisible));
 				}
 			}
 
@@ -1262,7 +1274,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 				VectorAdd(mins, ci.interOrigin, mins);
 				VectorAdd(maxs, ci.interOrigin, maxs);
 
-				ui::DrawBox3D(mins, maxs, 1.0f, colorGreen);
+				ui::DrawBox3D(mins, maxs, 1.0f, ui::AdjustAlpha(colorGreen, 0.3f, !isPlayerVisible));
 			}
 
 
@@ -1284,18 +1296,20 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_footleft")), intptr_t(&orFootL)) &&
 					VmMainCall(CG_GET_TAG, i, intptr_t(XorString("tag_footright")), intptr_t(&orFootR)))
 				{
-					ui::DrawLine3D(orHead.origin, orChest.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orChest.origin, orArmL.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orChest.origin, orArmR.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orArmL.origin, orHandL.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orArmR.origin, orHandR.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orChest.origin, orTorso.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orTorso.origin, orHipsL.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orTorso.origin, orHipsR.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orHipsL.origin, orLegL.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orHipsR.origin, orLegR.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orLegL.origin, orFootL.origin, 2.0f, colorGreen);
-					ui::DrawLine3D(orLegR.origin, orFootR.origin, 2.0f, colorGreen);
+					float* color = ui::AdjustAlpha(colorGreen, 0.3f, !isPlayerVisible);
+
+					ui::DrawLine3D(orHead.origin, orChest.origin, 2.0f, color);
+					ui::DrawLine3D(orChest.origin, orArmL.origin, 2.0f, color);
+					ui::DrawLine3D(orChest.origin, orArmR.origin, 2.0f, color);
+					ui::DrawLine3D(orArmL.origin, orHandL.origin, 2.0f, color);
+					ui::DrawLine3D(orArmR.origin, orHandR.origin, 2.0f, color);
+					ui::DrawLine3D(orChest.origin, orTorso.origin, 2.0f, color);
+					ui::DrawLine3D(orTorso.origin, orHipsL.origin, 2.0f, color);
+					ui::DrawLine3D(orTorso.origin, orHipsR.origin, 2.0f, color);
+					ui::DrawLine3D(orHipsL.origin, orLegL.origin, 2.0f, color);
+					ui::DrawLine3D(orHipsR.origin, orLegR.origin, 2.0f, color);
+					ui::DrawLine3D(orLegL.origin, orFootL.origin, 2.0f, color);
+					ui::DrawLine3D(orLegR.origin, orFootR.origin, 2.0f, color);
 				}
 			}
 
@@ -1303,6 +1317,8 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			// Name ESP
 			if (cfg.nameEsp)
 			{
+				float* color = ui::AdjustAlpha(colorWhite, 0.3f, !isPlayerVisible);
+
 				if (cfg.nameEspMode == 0)
 				{
 					vec3_t feetAnchor;
@@ -1311,7 +1327,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 					float x, y;
 					if (ui::WorldToScreen(feetAnchor, &x, &y))
-						ui::DrawText(x, y, 0.14f, 0.14f, colorWhite, ci.name, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
+						ui::DrawText(x, y, 0.14f, 0.14f, color, ci.name, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
 				}
 				else
 				{
@@ -1322,7 +1338,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 						float x, y;
 						if (ui::WorldToScreen(orHead.origin, &x, &y))
-							ui::DrawText(x, y - 8.0f, 0.14f, 0.14f, colorWhite, ci.name, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
+							ui::DrawText(x, y - 8.0f, 0.14f, 0.14f, color, ci.name, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
 					}
 				}
 			}
@@ -1342,24 +1358,30 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			if (VectorDistance(cg_refdef.vieworg, cgEnt.origin) > cfg.maxEspDistance)
 				continue;
 
+			bool isEntityVisible = true;
+			if (cfg.visibleCheck)
+				isEntityVisible = eng::IsPointVisible(cg_refdef.vieworg, cgEnt.origin, cgEnt.entityNum);
+
 			if (cfg.missileEsp && ent.eType == ET_MISSILE)
 			{
 				float x, y;
 				if (!ui::WorldToScreen(cgEnt.origin, &x, &y))
 					continue;
 
+				float* color = ui::AdjustAlpha(colorRed, 0.3f, !isEntityVisible);
+
 				if (ent.weapon == WP_LANDMINE && eng::IsEntityArmed(&ent))
-					ui::DrawIcon(x, y, 15.0f, 15.0f, colorRed, media.landmineIcon);
+					ui::DrawIcon(x, y, 15.0f, 15.0f, color, media.landmineIcon);
 				else if (ent.weapon == WP_DYNAMITE)
-					ui::DrawIcon(x, y, 15.0f, 15.0f, colorRed, media.dynamiteIcon);
+					ui::DrawIcon(x, y, 15.0f, 15.0f, color, media.dynamiteIcon);
 				else if (ent.weapon == WP_SMOKE_BOMB)
-					ui::DrawIcon(x, y, 15.0f, 15.0f, colorRed, media.smokeIcon);
+					ui::DrawIcon(x, y, 15.0f, 15.0f, color, media.smokeIcon);
 				else if (ent.weapon == WP_GRENADE_PINEAPPLE)
-					ui::DrawIcon(x, y, 15.0f, 15.0f, colorRed, media.pineappleIcon);
+					ui::DrawIcon(x, y, 15.0f, 15.0f, color, media.pineappleIcon);
 				else if (ent.weapon == WP_GRENADE_LAUNCHER)
-					ui::DrawIcon(x, y, 15.0f, 15.0f, colorRed, media.grenadeIcon);
+					ui::DrawIcon(x, y, 15.0f, 15.0f, color, media.grenadeIcon);
 				else if (ent.weapon == WP_SATCHEL)
-					ui::DrawIcon(x, y, 15.0f, 15.0f, colorRed, media.satchelIcon);
+					ui::DrawIcon(x, y, 15.0f, 15.0f, color, media.satchelIcon);
 
 				// Draw detonation timer for dynamite
 				if (ent.weapon == WP_DYNAMITE && eng::IsEntityArmed(&ent))
@@ -1368,7 +1390,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 					char timeString[64];
 					sprintf_s(timeString, XorString("%i"), time);
-					ui::DrawText(x, y + 10.0f, 0.12f, 0.12f, colorRed, timeString, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
+					ui::DrawText(x, y + 10.0f, 0.12f, 0.12f, color, timeString, 0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_CENTER, &media.limboFont1);
 
 					if (cfg.missileRadius && time <= 5)
 					{
@@ -1388,20 +1410,22 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 				if (!ui::WorldToScreen(cgEnt.origin, &x, &y))
 					continue;
 
+				float* color = ui::AdjustAlpha(colorGreen, 0.3f, !isEntityVisible);
+
 				// TODO: Do not hardcode model indices.
 				// Pickup items use the playerID for entityNum in ADDREFENTITYTOSCENE instead.
 				if (ent.modelindex == 3)
-					ui::DrawIcon(x, y, 15.0f, 15.0f, colorGreen, media.medkitIcon);
+					ui::DrawIcon(x, y, 15.0f, 15.0f, color, media.medkitIcon);
 				else if (ent.modelindex == 33)
-					ui::DrawIcon(x, y, 15.0f, 15.0f, colorGreen, media.ammoIcon);
+					ui::DrawIcon(x, y, 15.0f, 15.0f, color, media.ammoIcon);
 				else if (ent.modelindex == 19)
-					ui::DrawIcon(x, y, 30.0f, 15.0f, colorGreen, media.mp40Icon);
+					ui::DrawIcon(x, y, 30.0f, 15.0f, color, media.mp40Icon);
 				else if (ent.modelindex == 13)
-					ui::DrawIcon(x, y, 30.0f, 15.0f, colorGreen, media.thompsonIcon);
+					ui::DrawIcon(x, y, 30.0f, 15.0f, color, media.thompsonIcon);
 				else if (ent.modelindex == 15)
-					ui::DrawIcon(x, y, 30.0f, 15.0f, colorGreen, media.stenIcon);
+					ui::DrawIcon(x, y, 30.0f, 15.0f, color, media.stenIcon);
 				else if (ent.modelindex == 44)
-					ui::DrawIcon(x, y, 30.0f, 15.0f, colorGreen, media.fg42Icon);
+					ui::DrawIcon(x, y, 30.0f, 15.0f, color, media.fg42Icon);
 			}
 		}
 

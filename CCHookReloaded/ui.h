@@ -3,6 +3,7 @@
 namespace ui
 {
 	void AdjustFrom640(float *x, float *y, float *w, float *h);
+	float* AdjustAlpha(vec4_t color, float a, bool enabled = true);
 	bool WorldToScreen(const vec3_t worldCoord, float *x, float *y);
 	void DrawLine2D(float x0, float y0, float x1, float y1, float f, const vec4_t color);
 	void DrawLine3D(const vec3_t from, const vec3_t to, float f, const vec4_t col);

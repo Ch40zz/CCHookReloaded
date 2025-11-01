@@ -76,6 +76,7 @@ struct SConfig
 
 
 	// ESP
+	bool visibleCheck = false;
 	bool headBbox = true;
 	bool bodyBbox = false;
 	bool boneEsp = true;

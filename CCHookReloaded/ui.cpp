@@ -37,6 +37,20 @@ namespace ui
 
 		return true;
 	}
+	float* AdjustAlpha(vec4_t color, float a, bool enabled)
+	{
+		if (!enabled)
+			return color;
+
+		static vec4_t tmpColor;
+
+		tmpColor[0] = color[0];
+		tmpColor[1] = color[1];
+		tmpColor[2] = color[2];
+		tmpColor[3] = color[3] * a;
+
+		return tmpColor;
+	}
 	void DrawLine2D(float x0, float y0, float x1, float y1, float f, const vec4_t color)
 	{
 		ui::AdjustFrom640(&x0, &y0, &x1, &y1);
@@ -57,7 +71,7 @@ namespace ui
 			verts[i].modulate[0] = color[0] * 255;
 			verts[i].modulate[1] = color[1] * 255;
 			verts[i].modulate[2] = color[2] * 255;
-			verts[i].modulate[3] = 255;
+			verts[i].modulate[3] = color[3] * 255;
 		}
 	
 		DoSyscall(CG_R_DRAW2DPOLYS, verts, 4, media.whiteShader);
@@ -394,13 +408,14 @@ namespace ui
 			DrawCheckbox(menuX + 120, menuY + 75, XorString("Player Corpse"), &cfg.playerCorpseChams);
 			break;
 		case 2: // ESP
-			DrawCheckbox(menuX + 10, menuY + 35, XorString("Head BBox"), &cfg.headBbox);
-			DrawCheckbox(menuX + 10, menuY + 45, XorString("Body BBox"), &cfg.bodyBbox);
-			DrawCheckbox(menuX + 10, menuY + 55, XorString("Bone ESP"), &cfg.boneEsp);
-			DrawCheckbox(menuX + 10, menuY + 65, XorString("Name ESP"), &cfg.nameEsp);
-			DrawCheckbox(menuX + 10, menuY + 75, XorString("Missile ESP"), &cfg.missileEsp);
-			DrawCheckbox(menuX + 10, menuY + 85, XorString("Missile Radius"), &cfg.missileRadius);
-			DrawCheckbox(menuX + 10, menuY + 95, XorString("Pickup ESP"), &cfg.pickupEsp);
+			DrawCheckbox(menuX + 10, menuY + 35, XorString("Visible Check"), &cfg.visibleCheck);
+			DrawCheckbox(menuX + 10, menuY + 45, XorString("Head BBox"), &cfg.headBbox);
+			DrawCheckbox(menuX + 10, menuY + 55, XorString("Body BBox"), &cfg.bodyBbox);
+			DrawCheckbox(menuX + 10, menuY + 65, XorString("Bone ESP"), &cfg.boneEsp);
+			DrawCheckbox(menuX + 10, menuY + 75, XorString("Name ESP"), &cfg.nameEsp);
+			DrawCheckbox(menuX + 10, menuY + 85, XorString("Missile ESP"), &cfg.missileEsp);
+			DrawCheckbox(menuX + 10, menuY + 95, XorString("Missile Radius"), &cfg.missileRadius);
+			DrawCheckbox(menuX + 10, menuY + 105, XorString("Pickup ESP"), &cfg.pickupEsp);
 			break;
 		case 3: // Misc
 			DrawCheckbox(menuX + 10, menuY + 35, XorString("Spectator Warning"), &cfg.spectatorWarning);
