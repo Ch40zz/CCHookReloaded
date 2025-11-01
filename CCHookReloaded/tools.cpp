@@ -283,13 +283,11 @@ namespace tools
 		static SOCKET sock = INVALID_SOCKET;
 
 		// Send server status request every 500 ms
-		static int timeout_ms = 0;
-		if ((timeout_ms -= cg_frametime) <= 0)
+		static uint32_t lastQueryTime = 0;
+		if (GetTickCount() - lastQueryTime >= 500)
 		{
-			timeout_ms = 500;
-
 			// Re-Create socket if needed
-			
+
 			if (sock != INVALID_SOCKET)
 				closesocket(sock);
 
@@ -308,6 +306,8 @@ namespace tools
 
 			// UDP messages always arrive (if they arrive) in the exact same size as sent
 			sendto(sock, XorString(NET_STATUS_REQUEST), sizeof(NET_STATUS_REQUEST)-1, 0, (sockaddr*)&sockAddr, sizeof(sockAddr));
+
+			lastQueryTime = GetTickCount();
 		}
 
 
