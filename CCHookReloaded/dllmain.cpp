@@ -1099,6 +1099,12 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			if (cgDC_cursory > 480) cgDC_cursory = 480;
 		}
 	}
+	else if (id == CG_SHUTDOWN)
+	{
+		// Reset patched images back to original
+		PatchLoadedImages(false);
+		UnlockCvars(true);
+	}
 	else if (id == CG_DRAW_ACTIVE_FRAME)
 	{
 		const int serverTime = a1;
@@ -1117,6 +1123,9 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 			showMenu = false; // CG_KEY_GETCATCHER in menu causes crash otherwise
 			old_reliableSequence = off::cur.clc_reliableSequence();
+
+			// Don't do any cheat logic in the first frame, the game still needs to load data
+			return result;
 		}
 
 		if (currentMod == EMod::EtPro &&  cfg.etproGuid && cfg.etproGuid[0]) etpro_SpoofGUID(cfg.etproGuid);
