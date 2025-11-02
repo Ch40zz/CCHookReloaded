@@ -381,13 +381,14 @@ namespace ui
 		{
 		case 0: // Aimbot
 			DrawCheckbox(menuX + 10, menuY + 35, XorString("Aimbot Enabled"), &cfg.aimbotEnabled);
-			DrawCheckbox(menuX + 10, menuY + 45, XorString("Sticky Aim"), &cfg.aimbotStickyAim);
-			DrawCheckbox(menuX + 10, menuY + 55, XorString("Sticky Auto-Reset"), &cfg.aimbotStickyAutoReset);
-			DrawCheckbox(menuX + 10, menuY + 65, XorString("Lock Viewangles"), &cfg.aimbotLockViewangles);
-			DrawCheckbox(menuX + 10, menuY + 75, XorString("Autoshoot"), &cfg.aimbotAutoshoot);
-			DrawCheckbox(menuX + 10, menuY + 85, XorString("Velocity Prediction"), &cfg.aimbotVelocityPrediction);
-			DrawCheckbox(menuX + 10, menuY + 95, XorString("Ping Prediction"), &cfg.aimbotPingPrediction);
-			DrawCheckbox(menuX + 10, menuY + 105, XorString("Human Aim"), &cfg.aimbotHumanAim);
+			DrawCheckbox(menuX + 10, menuY + 45, XorString("Sort by screen distance"), &cfg.aimbotScreenDist);
+			DrawCheckbox(menuX + 10, menuY + 55, XorString("Sticky Aim"), &cfg.aimbotStickyAim);
+			DrawCheckbox(menuX + 10, menuY + 65, XorString("Sticky Auto-Reset"), &cfg.aimbotStickyAutoReset);
+			DrawCheckbox(menuX + 10, menuY + 75, XorString("Lock Viewangles"), &cfg.aimbotLockViewangles);
+			DrawCheckbox(menuX + 10, menuY + 85, XorString("Autoshoot"), &cfg.aimbotAutoshoot);
+			DrawCheckbox(menuX + 10, menuY + 95, XorString("Velocity Prediction"), &cfg.aimbotVelocityPrediction);
+			DrawCheckbox(menuX + 10, menuY + 105, XorString("Ping Prediction"), &cfg.aimbotPingPrediction);
+			DrawCheckbox(menuX + 10, menuY + 115, XorString("Human Aim"), &cfg.aimbotHumanAim);
 			break;
 		case 1: // Visuals
 			DrawCheckbox(menuX + 10, menuY + 35, XorString("Scoped Walk"), &cfg.scopedWalk);

@@ -38,6 +38,7 @@ struct SConfig
 
 	// Aimbot
 	bool aimbotEnabled = true;
+	bool aimbotScreenDist = true;
 	int  aimbotAimkey = VK_LBUTTON; // 0 = No Aimkey
 	bool aimbotStickyAim = true;
 	bool aimbotStickyAutoReset = true;

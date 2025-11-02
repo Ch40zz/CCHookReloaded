@@ -1549,13 +1549,21 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 						if (!GetAimPos(cgs_clientinfo[i], localAimPos, traceBox, traceHead))
 							continue;
 
-						float x, y;
-						if (!ui::WorldToScreen(localAimPos, &x, &y))
-							continue;
+						float dist;
+						if (cfg.aimbotScreenDist)
+						{
+							float x, y;
+							if (!ui::WorldToScreen(localAimPos, &x, &y))
+								continue;
 
-						float xc = cg_glconfig.vidWidth/2;
-						float yc = cg_glconfig.vidHeight/2;
-						float dist = sqrt((x-xc)*(x-xc) + (y-yc)*(y-yc));
+							float xc = 640.0 / 2.0f;
+							float yc = 480.0 / 2.0f;
+							dist = sqrt((x - xc) * (x - xc) + (y - yc) * (y - yc));
+						}
+						else
+						{
+							dist = VectorDistance(cg_refdef.vieworg, localAimPos);
+						}
 
 						if (targetId != -1 && dist >= targetDist)
 							continue;
