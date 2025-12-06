@@ -524,6 +524,13 @@ int APIENTRY wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWS
 
 	srand(GetTickCount());
 
+	// Ensure `CreateProcessW()` passes on admin rights to the child process
+	if (!SetEnvironmentVariableW(L"__COMPAT_LAYER", L"RunAsInvoker"))
+	{
+		ShowError(L"Failed to set '__COMPAT_LAYER' environment variable (%lu)", GetLastError());
+		return 1;
+	}
+
 	wchar_t etExePath[MAX_PATH + 1] = { L"et.exe" };
 	int injectionMethod = 0;
 
