@@ -332,10 +332,103 @@ namespace ui
 		if (IsHovering && (btnMouseL & 1))
 			*state ^= 1;
 	}
+	static float ClampFloat(float v, float lo, float hi)
+	{
+		if (v < lo) return lo;
+		if (v > hi) return hi;
+		return v;
+	}
+
+	static float SnapToStep(float v, float step)
+	{
+		if (step <= 0.0f) return v;
+		// round to nearest step
+		return floorf((v / step) + 0.5f) * step;
+	}
+
+	// Generic slider bar for floats (click + drag)
+	void DrawSliderFloat(float x, float y, float w, float h,
+		const char* label,
+		float* value,
+		float minV, float maxV,
+		float step,
+		bool showValue = true)
+	{
+		if (!value || maxV <= minV) return;
+
+		const bool IsHovering =
+			cgDC_cursorx >= x && cgDC_cursorx < x + w &&
+			cgDC_cursory >= y && cgDC_cursory < y + h;
+
+		// Active drag state shared by all sliders
+		static float* activeSlider = nullptr;
+
+		// Start dragging on click
+		if (IsHovering && (btnMouseL & 1))
+			activeSlider = value;
+
+		// Stop dragging when mouse released
+		if (!(btnMouseL < 0))
+		{
+			if (activeSlider == value)
+				activeSlider = nullptr;
+		}
+
+		// Update value while dragging
+		if (activeSlider == value && (btnMouseL < 0))
+		{
+			float t = (cgDC_cursorx - x) / w;
+			t = ClampFloat(t, 0.0f, 1.0f);
+
+			float v = minV + t * (maxV - minV);
+			v = SnapToStep(v - minV, step) + minV;
+			v = ClampFloat(v, minV, maxV);
+
+			*value = v;
+		}
+
+		// Visuals
+		const bool IsActive = (activeSlider == value);
+
+		const vec_t* bg = (IsHovering || IsActive) ? colorMenuBgHl : colorMenuBg;
+		const vec_t* bo = (IsHovering || IsActive) ? colorMenuBoHl : colorMenuBo;
+
+		// Slider background
+		DrawBoxBordered2D(x, y, w, h, bg, bo, media.whiteShader);
+
+		// Fill amount
+		float t = (*value - minV) / (maxV - minV);
+		t = ClampFloat(t, 0.0f, 1.0f);
+
+		const float fillW = w * t;
+		vec4_t fillCol = { bo[0], bo[1], bo[2], 0.65f };
+		DrawBox2D(x + 1.0f, y + 1.0f, fillW - 2.0f, h - 2.0f, fillCol, media.whiteShader);
+
+		// Knob
+		const float knobW = 4.0f;
+		float knobX = x + fillW - knobW / 2.0f;
+		knobX = ClampFloat(knobX, x, x + w - knobW);
+		DrawBox2D(knobX, y, knobW, h, bo, media.whiteShader);
+
+		// Label + value text (above the bar)
+		float textY = y - 1.0f;
+
+		DrawText(x, textY, 0.14f, 0.14f, colorWhite, label,
+			0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_LEFT, &media.limboFont2);
+
+		if (showValue)
+		{
+			char buf[64];
+			_snprintf_s(buf, sizeof(buf), "%.4f", *value);
+
+			DrawText(x + w, textY, 0.14f, 0.14f, colorWhite, buf,
+				0.0f, 0, ITEM_TEXTSTYLE_SHADOWED, ITEM_ALIGN_RIGHT, &media.limboFont2);
+		}
+	}
 	void DrawMenu()
 	{
 		const int menuSizeX = 245;
-		const int menuSizeY = 150;
+		const int menuSizeY = 220;
 		const int menuX = 320 - menuSizeX/2;
 		const int menuY = 240 - menuSizeY/2;
 
@@ -389,6 +482,27 @@ namespace ui
 			DrawCheckbox(menuX + 10, menuY + 95, XorString("Velocity Prediction"), &cfg.aimbotVelocityPrediction);
 			DrawCheckbox(menuX + 10, menuY + 105, XorString("Ping Prediction"), &cfg.aimbotPingPrediction);
 			DrawCheckbox(menuX + 10, menuY + 115, XorString("Human Aim"), &cfg.aimbotHumanAim);
+			// Sliders (right column)
+			{
+				const float sx = menuX + 120.0f;
+				float sy = menuY + 45.0f;
+				const float sw = 110.0f;
+				const float sh = 8.0f;
+				const float gap = 16.0f;
+
+				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Fov X"), &cfg.aimbotHumanFovX, 0.0f, 30.0f, 0.5f); sy += gap;
+				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Fov Y"), &cfg.aimbotHumanFovY, 0.0f, 30.0f, 0.5f); sy += gap;
+
+				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Fov Max X"), &cfg.aimbotHumanFovMaxX, 0.0f, 30.0f, 0.5f); sy += gap;
+				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Fov Max Y"), &cfg.aimbotHumanFovMaxY, 0.0f, 30.0f, 0.5f); sy += gap;
+
+				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Speed"), &cfg.aimbotHumanSpeed, 0.0f, 1.0f, 0.005f); sy += gap;
+
+				DrawSliderFloat(sx, sy, sw, sh, XorString("Head Trace Step"), &cfg.aimbotHeadBoxTraceStep, 0.05f, 2.0f, 0.05f); sy += gap;
+				DrawSliderFloat(sx, sy, sw, sh, XorString("Body Trace Step"), &cfg.aimbotBodyBoxTraceStep, 0.05f, 2.0f, 0.05f); sy += gap;
+
+				DrawSliderFloat(sx, sy, sw, sh, XorString("Head Height Offset"), &cfg.aimbotHeadHeightOffset, -10.0f, 10.0f, 0.25f);
+			}
 			break;
 		case 1: // Visuals
 			DrawCheckbox(menuX + 10, menuY + 35, XorString("Scoped Walk"), &cfg.scopedWalk);
