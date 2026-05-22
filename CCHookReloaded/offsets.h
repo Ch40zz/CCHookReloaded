@@ -469,6 +469,9 @@ namespace off
 		{
 			// F3 0F 58 ? F3 0F 11 25 ? ? ? ? C3
 			{ XorString("\xF3\x0F\x58\x00\xF3\x0F\x11\x25\x00\x00\x00\x00\xC3"), XorString("xxx?xxxx????x"), CSignature::EMode::ExtractPtr, 8 },
+
+			// F3 0F 58 ? ? ? ? ? F3 0F 11 ? ? ? ? ? 0F BE ? 14
+			{ XorString("\xF3\x0F\x58\x00\x00\x00\x00\x00\xF3\x0F\x11\x00\x00\x00\x00\x00\x0F\xBE\x00\x14"), XorString("xxx?????xxx?????xx?x"), CSignature::EMode::ExtractPtr, 4 },
 		};
 		CSignature clc_challenge[] = 
 		{
