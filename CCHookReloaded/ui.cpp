@@ -356,6 +356,8 @@ namespace ui
 	{
 		if (!value || maxV <= minV) return;
 
+		y += 1;
+
 		const bool IsHovering =
 			cgDC_cursorx >= x && cgDC_cursorx < x + w &&
 			cgDC_cursory >= y && cgDC_cursory < y + h;
@@ -428,7 +430,7 @@ namespace ui
 	void DrawMenu()
 	{
 		const int menuSizeX = 245;
-		const int menuSizeY = 220;
+		const int menuSizeY = 150;
 		const int menuX = 320 - menuSizeX/2;
 		const int menuY = 240 - menuSizeY/2;
 
@@ -482,27 +484,15 @@ namespace ui
 			DrawCheckbox(menuX + 10, menuY + 95, XorString("Velocity Prediction"), &cfg.aimbotVelocityPrediction);
 			DrawCheckbox(menuX + 10, menuY + 105, XorString("Ping Prediction"), &cfg.aimbotPingPrediction);
 			DrawCheckbox(menuX + 10, menuY + 115, XorString("Human Aim"), &cfg.aimbotHumanAim);
-			// Sliders (right column)
-			{
-				const float sx = menuX + 120.0f;
-				float sy = menuY + 45.0f;
-				const float sw = 110.0f;
-				const float sh = 8.0f;
-				const float gap = 16.0f;
 
-				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Fov X"), &cfg.aimbotHumanFovX, 0.0f, 30.0f, 0.5f); sy += gap;
-				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Fov Y"), &cfg.aimbotHumanFovY, 0.0f, 30.0f, 0.5f); sy += gap;
-
-				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Fov Max X"), &cfg.aimbotHumanFovMaxX, 0.0f, 30.0f, 0.5f); sy += gap;
-				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Fov Max Y"), &cfg.aimbotHumanFovMaxY, 0.0f, 30.0f, 0.5f); sy += gap;
-
-				DrawSliderFloat(sx, sy, sw, sh, XorString("Human Speed"), &cfg.aimbotHumanSpeed, 0.0f, 1.0f, 0.005f); sy += gap;
-
-				DrawSliderFloat(sx, sy, sw, sh, XorString("Head Trace Step"), &cfg.aimbotHeadBoxTraceStep, 0.05f, 2.0f, 0.05f); sy += gap;
-				DrawSliderFloat(sx, sy, sw, sh, XorString("Body Trace Step"), &cfg.aimbotBodyBoxTraceStep, 0.05f, 2.0f, 0.05f); sy += gap;
-
-				DrawSliderFloat(sx, sy, sw, sh, XorString("Head Height Offset"), &cfg.aimbotHeadHeightOffset, -10.0f, 10.0f, 0.25f);
-			}
+			DrawSliderFloat(menuX + 120, menuY + 35, 110, 7, XorString("Human Fov X"), &cfg.aimbotHumanFovX, 0.0f, 30.0f, 0.5f);
+			DrawSliderFloat(menuX + 120, menuY + 45, 110, 7, XorString("Human Fov Y"), &cfg.aimbotHumanFovY, 0.0f, 30.0f, 0.5f);
+			DrawSliderFloat(menuX + 120, menuY + 55, 110, 7, XorString("Human Fov Max X"), &cfg.aimbotHumanFovMaxX, 0.0f, 30.0f, 0.5f);
+			DrawSliderFloat(menuX + 120, menuY + 65, 110, 7, XorString("Human Fov Max Y"), &cfg.aimbotHumanFovMaxY, 0.0f, 30.0f, 0.5f);
+			DrawSliderFloat(menuX + 120, menuY + 75, 110, 7, XorString("Human Speed"), &cfg.aimbotHumanSpeed, 0.0f, 1.0f, 0.005f);
+			DrawSliderFloat(menuX + 120, menuY + 85, 110, 7, XorString("Head Trace Step"), &cfg.aimbotHeadBoxTraceStep, 0.05f, 2.0f, 0.05f);
+			DrawSliderFloat(menuX + 120, menuY + 95, 110, 7, XorString("Body Trace Step"), &cfg.aimbotBodyBoxTraceStep, 0.05f, 2.0f, 0.05f);
+			DrawSliderFloat(menuX + 120, menuY + 105, 110, 7, XorString("Head Height Offset"), &cfg.aimbotHeadHeightOffset, -10.0f, 10.0f, 0.25f);
 			break;
 		case 1: // Visuals
 			DrawCheckbox(menuX + 10, menuY + 35, XorString("Scoped Walk"), &cfg.scopedWalk);
