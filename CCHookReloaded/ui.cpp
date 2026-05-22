@@ -332,28 +332,14 @@ namespace ui
 		if (IsHovering && (btnMouseL & 1))
 			*state ^= 1;
 	}
-	static float ClampFloat(float v, float lo, float hi)
+	void DrawSliderFloat(float x, float y, float w, float h, const char* label, float* value, float minV, float maxV, float step, bool showValue = true)
 	{
-		if (v < lo) return lo;
-		if (v > hi) return hi;
-		return v;
-	}
+		auto SnapToStep = [](float v, float step) -> float {
+				if (step <= 0.0f) return v;
+				// round to nearest step
+				return floorf((v / step) + 0.5f) * step;
+		};
 
-	static float SnapToStep(float v, float step)
-	{
-		if (step <= 0.0f) return v;
-		// round to nearest step
-		return floorf((v / step) + 0.5f) * step;
-	}
-
-	// Generic slider bar for floats (click + drag)
-	void DrawSliderFloat(float x, float y, float w, float h,
-		const char* label,
-		float* value,
-		float minV, float maxV,
-		float step,
-		bool showValue = true)
-	{
 		if (!value || maxV <= minV) return;
 
 		y += 1;
@@ -380,11 +366,11 @@ namespace ui
 		if (activeSlider == value && (btnMouseL < 0))
 		{
 			float t = (cgDC_cursorx - x) / w;
-			t = ClampFloat(t, 0.0f, 1.0f);
+			t = std::clamp(t, 0.0f, 1.0f);
 
 			float v = minV + t * (maxV - minV);
 			v = SnapToStep(v - minV, step) + minV;
-			v = ClampFloat(v, minV, maxV);
+			v = std::clamp(v, minV, maxV);
 
 			*value = v;
 		}
@@ -400,7 +386,7 @@ namespace ui
 
 		// Fill amount
 		float t = (*value - minV) / (maxV - minV);
-		t = ClampFloat(t, 0.0f, 1.0f);
+		t = std::clamp(t, 0.0f, 1.0f);
 
 		const float fillW = w * t;
 		vec4_t fillCol = { bo[0], bo[1], bo[2], 0.65f };
@@ -409,7 +395,7 @@ namespace ui
 		// Knob
 		const float knobW = 4.0f;
 		float knobX = x + fillW - knobW / 2.0f;
-		knobX = ClampFloat(knobX, x, x + w - knobW);
+		knobX = std::clamp(knobX, x, x + w - knobW);
 		DrawBox2D(knobX, y, knobW, h, bo, media.whiteShader);
 
 		// Label + value text (above the bar)
