@@ -503,7 +503,7 @@ bool InjectDllManualMap(HANDLE processHandle, std::wstring_view dllPath)
 	DWORD exitCode = ~0ul;
 	if (!GetExitCodeThread(remoteThread, &exitCode) || exitCode != TRUE)
 	{
-		ShowError(L"InjectDllManualMap: DllMain was unsuccessful and returned status 0x%8X", exitCode);
+		ShowError(L"InjectDllManualMap: DllMain was unsuccessful and returned status 0x%08X", exitCode);
 		return false;
 	}
 
