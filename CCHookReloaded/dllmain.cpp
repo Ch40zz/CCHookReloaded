@@ -540,7 +540,7 @@ intptr_t hooked_CL_CgameSystemCalls(intptr_t *args)
 
 		cg_entities[ent.entityNum] = ent;
 
-		if (disableRendering)
+		if (disableRendering || cg_snapshot.ps.pm_type == PM_INTERMISSION)
 			break;
 		if (ent.reType != RT_MODEL)
 			break;
@@ -682,7 +682,9 @@ intptr_t hooked_CL_CgameSystemCalls(intptr_t *args)
 
 		memcpy(&cg_refdef, refdef, sizeof(cg_refdef));
 
-		if (!disableRendering)
+		if (cg_snapshot.ps.pm_type == PM_INTERMISSION)
+			draw3dCommands.clear();
+		else if (!disableRendering)
 		{
 			// Rail Trails for local player shots
 			if (cfg.bulletTracers)
@@ -1139,6 +1141,12 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 		PatchLoadedImages(!disableRendering);
 		UnlockCvars(false);
 
+
+		if (cg_snapshot.ps.pm_type == PM_INTERMISSION)
+		{
+			draw3dCommands.clear();
+			return result;
+		}
 
 		// If limbo menu is open or screenshot is in progress do not draw ESP
 		if (cg_showGameView || disableRendering)
