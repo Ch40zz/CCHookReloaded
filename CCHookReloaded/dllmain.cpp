@@ -1627,7 +1627,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 				if (isTargetValid && (lockViewangles = eng::AimAtTarget(aimPos)))
 				{
-					if (cfg.aimbotAutoCrouch && cg_snapshot.ps.pm_type == PM_NORMAL &&
+					if (cfg.aimbotAutocrouch && cg_snapshot.ps.pm_type == PM_NORMAL &&
 						!(cg_snapshot.ps.eFlags & (EF_DEAD | EF_PRONE)) &&
 						!eng::IsKeyActionActive(XorString("+sprint")))
 					{
