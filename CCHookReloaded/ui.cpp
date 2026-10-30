@@ -467,7 +467,7 @@ namespace ui
 			DrawCheckbox(menuX + 10, menuY + 65, XorString("Sticky Auto-Reset"), &cfg.aimbotStickyAutoReset);
 			DrawCheckbox(menuX + 10, menuY + 75, XorString("Lock Viewangles"), &cfg.aimbotLockViewangles);
 			DrawCheckbox(menuX + 10, menuY + 85, XorString("Autoshoot"), &cfg.aimbotAutoshoot);
-			DrawCheckbox(menuX + 10, menuY + 95, XorString("Autocrouch"), &cfg.aimbotAutoCrouch);
+			DrawCheckbox(menuX + 10, menuY + 95, XorString("Autocrouch"), &cfg.aimbotAutocrouch);
 			DrawCheckbox(menuX + 10, menuY + 105, XorString("Velocity Prediction"), &cfg.aimbotVelocityPrediction);
 			DrawCheckbox(menuX + 10, menuY + 115, XorString("Ping Prediction"), &cfg.aimbotPingPrediction);
 			DrawCheckbox(menuX + 10, menuY + 125, XorString("Human Aim"), &cfg.aimbotHumanAim);
