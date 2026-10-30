@@ -44,6 +44,7 @@ struct SConfig
 	bool aimbotStickyAutoReset = true;
 	bool aimbotLockViewangles = true;
 	bool aimbotAutoshoot = false;
+	bool aimbotAutocrouch = false;
 	bool aimbotVelocityPrediction = false;
 	bool aimbotPingPrediction = false;
 	bool aimbotHumanAim = false;
