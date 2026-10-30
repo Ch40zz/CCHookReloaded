@@ -49,6 +49,21 @@ uint8_t etpro_rollingkey[8];
 
 std::vector<SDraw3dCommand> draw3dCommands;
 
+static void SetAutoCrouch(bool enabled)
+{
+	static bool active = false;
+	if (active == enabled)
+		return;
+
+	// Use our own key number so releasing it doesn't release the player's key
+	if (enabled)
+		DoSyscall(CG_SENDCONSOLECOMMAND, XorString("+movedown 1024\n"));
+	else
+		DoSyscall(CG_SENDCONSOLECOMMAND, XorString("-movedown 1024\n"));
+
+	active = enabled;
+}
+
 
 EMod InitializeMod()
 {
@@ -1103,6 +1118,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 	}
 	else if (id == CG_SHUTDOWN)
 	{
+		SetAutoCrouch(false);
 		// Reset patched images back to original
 		PatchLoadedImages(false);
 		UnlockCvars(true);
@@ -1142,15 +1158,15 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 		UnlockCvars(false);
 
 
-		if (cg_snapshot.ps.pm_type == PM_INTERMISSION)
+		// If limbo menu is open, screenshot is in progress or we are in intermission then do not draw ESP
+		if (cg_snapshot.ps.pm_type == PM_INTERMISSION || cg_showGameView || disableRendering)
 		{
-			draw3dCommands.clear();
+			if (cg_snapshot.ps.pm_type == PM_INTERMISSION)
+				draw3dCommands.clear();
+
+			SetAutoCrouch(false);
 			return result;
 		}
-
-		// If limbo menu is open or screenshot is in progress do not draw ESP
-		if (cg_showGameView || disableRendering)
-			return result;
 
 		auto &localClient = cgs_clientinfo[cg_snapshot.ps.clientNum];
 
@@ -1439,13 +1455,15 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 
 		// Aimbot
+		bool shouldCrouch = false;
 		if (cfg.aimbotEnabled)
 		{
 			lockViewangles = false;
 
 			static int aimTargetId = -1;
-			bool enableAimbot = (hitscanWeaponBitmap & (1ull << cg_snapshot.ps.weapon)) && 
-				cfg.aimbotAimkey == 0 ? true : (GetKeyState(cfg.aimbotAimkey) & 0x8000) && !showMenu;
+			const bool enableAimbot = cg_snapshot.ps.weapon >= 0 && cg_snapshot.ps.weapon < 64 &&
+				(hitscanWeaponBitmap & (1ull << cg_snapshot.ps.weapon)) && !showMenu &&
+				(cfg.aimbotAimkey == 0 || (GetKeyState(cfg.aimbotAimkey) & 0x8000));
 
 			if (!enableAimbot)
 			{
@@ -1609,6 +1627,16 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 				if (isTargetValid && (lockViewangles = eng::AimAtTarget(aimPos)))
 				{
+					if (cfg.aimbotAutoCrouch && cg_snapshot.ps.pm_type == PM_NORMAL &&
+						!(cg_snapshot.ps.eFlags & (EF_DEAD | EF_PRONE)) &&
+						!eng::IsKeyActionActive(XorString("+sprint")))
+					{
+						vec3_t crouchVieworg;
+						VectorCopy(cg_snapshot.ps.origin, crouchVieworg);
+						crouchVieworg[2] += cg_snapshot.ps.crouchViewHeight;
+						shouldCrouch = eng::IsPointVisible(crouchVieworg, aimPos, aimTargetId);
+					}
+
 					// Autoshoot
 					if (cfg.aimbotAutoshoot)
 					{
@@ -1622,6 +1650,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 				}
 			}
 		}
+		SetAutoCrouch(shouldCrouch);
 
 
 		// Rifle and Grenade trajectory
