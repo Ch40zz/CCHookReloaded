@@ -1126,6 +1126,14 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 	else if (id == CG_SHUTDOWN)
 	{
 		SetAutoCrouch(false);
+
+		// Release here while the VM is still valid
+		if (showMenu)
+		{
+			DoSyscall(CG_KEY_SETCATCHER, DoSyscall(CG_KEY_GETCATCHER) & ~(KEYCATCH_MESSAGE | KEYCATCH_CGAME));
+			showMenu = false;
+		}
+
 		// Reset patched images back to original
 		PatchLoadedImages(false);
 		UnlockCvars(true);
