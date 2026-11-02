@@ -1183,6 +1183,11 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 		auto &localClient = cgs_clientinfo[cg_snapshot.ps.clientNum];
 
+		const bool isSpectating =
+			cg_snapshot.ps.pm_type != PM_NORMAL ||
+			(cg_snapshot.ps.pm_flags & PMF_FOLLOW) ||
+			localClient.teamNum == TEAM_SPECTATOR;
+
 		// Spectator Warning
 		if (cfg.spectatorWarning)
 		{
@@ -1475,7 +1480,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 			static int aimTargetId = -1;
 			const bool enableAimbot = cg_snapshot.ps.weapon >= 0 && cg_snapshot.ps.weapon < 64 &&
-				(hitscanWeaponBitmap & (1ull << cg_snapshot.ps.weapon)) && !showMenu &&
+				(hitscanWeaponBitmap & (1ull << cg_snapshot.ps.weapon)) && !showMenu && !isSpectating &&
 				(cfg.aimbotAimkey == 0 || (GetKeyState(cfg.aimbotAimkey) & 0x8000));
 
 			if (!enableAimbot)
@@ -1862,7 +1867,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			}
 		}
 
-		if (cfg.bunnyHop)
+		if (cfg.bunnyHop && !isSpectating)
 		{
 			vec3_t floorPos;
 			VectorCopy(cg_refdef.vieworg, floorPos);
