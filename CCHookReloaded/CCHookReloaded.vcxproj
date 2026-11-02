@@ -212,6 +212,7 @@
     <ClInclude Include="ETSDK\src\ui\ui_public.h" />
     <ClInclude Include="ETSDK\src\ui\ui_shared.h" />
     <ClInclude Include="globals.h" />
+    <ClInclude Include="guid.h" />
     <ClInclude Include="obfuscation.h" />
     <ClInclude Include="offsets.h" />
     <ClInclude Include="pch.h" />
