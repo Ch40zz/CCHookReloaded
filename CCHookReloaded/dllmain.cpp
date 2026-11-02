@@ -269,7 +269,7 @@ void UnlockCvarsInternal(bool refresh)
 		{
 			if (!strcmp(cvar_indexes[i].name, XorString("r_picmip")))
 			{
-				if (!vidrestartInProgress)
+				if (!vidrestartInProgress || refresh)
 				{
 					cvar_indexes[i].value = 31;
 					cvar_indexes[i].integer = 31;
@@ -282,6 +282,12 @@ void UnlockCvarsInternal(bool refresh)
 					cvar_indexes[i].flags = originalCvars[i].flags;
 				}
 			}
+		}
+		else if (lastPicmipHackState && !strcmp(cvar_indexes[i].name, XorString("r_picmip")))
+		{
+			cvar_indexes[i].value = originalCvars[i].value;
+			cvar_indexes[i].integer = originalCvars[i].integer;
+			cvar_indexes[i].flags = originalCvars[i].flags;
 		}
 	}
 
@@ -296,10 +302,11 @@ void UnlockCvarsInternal(bool refresh)
 			DoSyscall(CG_SENDCONSOLECOMMAND, XorString("vid_restart\n"));
 			return;
 		}
-		else
-		{
-			vidrestartInProgress = false;
-		}
+
+		if (refresh)
+			return;
+
+		vidrestartInProgress = false;
 	}
 
 	lastPicmipHackState = cfg.picmipHack;
@@ -1119,6 +1126,14 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 	else if (id == CG_SHUTDOWN)
 	{
 		SetAutoCrouch(false);
+
+		// Release here while the VM is still valid
+		if (showMenu)
+		{
+			DoSyscall(CG_KEY_SETCATCHER, DoSyscall(CG_KEY_GETCATCHER) & ~(KEYCATCH_MESSAGE | KEYCATCH_CGAME));
+			showMenu = false;
+		}
+
 		// Reset patched images back to original
 		PatchLoadedImages(false);
 		UnlockCvars(true);
