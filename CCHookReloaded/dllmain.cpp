@@ -32,6 +32,7 @@
 
 #include "config.h"
 #include "offsets.h"
+#include "guid.h"
 
 // Bit set if weapon is a hitscan weapon (enables aimbot)
 // Warning: This is mod dependent!
@@ -42,6 +43,15 @@ uintptr_t hookTimer = 0;
 volatile bool disableRendering = true;
 bool lockViewangles = false;
 uint32_t spoofSeed;
+static char fsHomePath[MAX_OSPATH] = {};
+
+static void UpdateLegacyGuid(const char *etKey)
+{
+	char guid[33];
+	guid::Calculate(etKey, guid);
+	DoSyscall(CG_CVAR_SET, XorString("cl_guid"), guid);
+	SecureZeroMemory(guid, sizeof(guid));
+}
 
 int old_reliableSequence = 0;
 bool etpro_set_rollingkey = false;
@@ -67,6 +77,9 @@ static void SetAutoCrouch(bool enabled)
 
 EMod InitializeMod()
 {
+	// fs_homepath works for all clients
+	DoSyscall(CG_CVAR_VARIABLESTRINGBUFFER, XorString("fs_homepath"), fsHomePath, sizeof(fsHomePath));
+
 	char modName[MAX_PATH+1];
 	EMod mod = tools::GetETMod(modName);
 	printf(XorString("Detected mod: %s (%i)\n"), modName, mod);
@@ -1170,6 +1183,11 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 		auto &localClient = cgs_clientinfo[cg_snapshot.ps.clientNum];
 
+		const bool isSpectating =
+			cg_snapshot.ps.pm_type != PM_NORMAL ||
+			(cg_snapshot.ps.pm_flags & PMF_FOLLOW) ||
+			localClient.teamNum == TEAM_SPECTATOR;
+
 		// Spectator Warning
 		if (cfg.spectatorWarning)
 		{
@@ -1462,7 +1480,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 
 			static int aimTargetId = -1;
 			const bool enableAimbot = cg_snapshot.ps.weapon >= 0 && cg_snapshot.ps.weapon < 64 &&
-				(hitscanWeaponBitmap & (1ull << cg_snapshot.ps.weapon)) && !showMenu &&
+				(hitscanWeaponBitmap & (1ull << cg_snapshot.ps.weapon)) && !showMenu && !isSpectating &&
 				(cfg.aimbotAimkey == 0 || (GetKeyState(cfg.aimbotAimkey) & 0x8000));
 
 			if (!enableAimbot)
@@ -1849,7 +1867,7 @@ intptr_t __cdecl hooked_vmMain(intptr_t id, intptr_t a1, intptr_t a2, intptr_t a
 			}
 		}
 
-		if (cfg.bunnyHop)
+		if (cfg.bunnyHop && !isSpectating)
 		{
 			vec3_t floorPos;
 			VectorCopy(cg_refdef.vieworg, floorPos);
@@ -2010,7 +2028,7 @@ void hooked_EndFrame(int *frontEndMsec, int *backEndMsec)
 
 	// Simple Un-Ban and auto-reconnect key:
 	// Generates a new ETKey and randomizes the net_port.
-	if (cfg.quickUnbanReconnect && GetAsyncKeyState(VK_F10)&1)
+	if (cfg.quickUnbanReconnect && (GetAsyncKeyState(VK_F10) & 1) && *fsHomePath)
 	{
 		// Set new spoof seed to change etpro guid and mac address on reconnect
 		spoofSeed = GetTickCount() * tools::Rand();
@@ -2020,25 +2038,42 @@ void hooked_EndFrame(int *frontEndMsec, int *backEndMsec)
 		for (size_t i = 0; i < 18; i++)
 			newEtKey[i + 10] = '0' + (tools::Rand() % 10);
 
-		const auto etInstallPath = tools::GetModulePath(nullptr).parent_path();
-		const auto etKeyPath = etInstallPath / "etmain" / "etkey";
-		const auto etBackupKeyPath = etInstallPath / "etmain" / ("etkey_" + std::to_string(GetTickCount()));
-		std::filesystem::copy_file(etKeyPath, etBackupKeyPath);
+		std::error_code ec;
+		const std::filesystem::path homePath(fsHomePath);
+		const auto etKeyPath = homePath / "etmain" / "etkey";
 
+		if (std::filesystem::exists(etKeyPath, ec))
+			std::filesystem::copy_file(etKeyPath, etKeyPath.parent_path() / ("etkey_" + std::to_string(GetTickCount())), ec);
+		else
+			std::filesystem::create_directories(etKeyPath.parent_path(), ec);
+
+		// Write the new etkey
 		HANDLE etkeyHandle = CreateFileW(etKeyPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, CREATE_ALWAYS, 0, nullptr);
 		if (etkeyHandle != INVALID_HANDLE_VALUE)
 		{
 			WriteFile(etkeyHandle, newEtKey, 28, nullptr, nullptr);
 			CloseHandle(etkeyHandle);
+
+			// ETLegacy doesn't recalculate cl_guid when connecting to or disconnecting from
+			// servers like 2.60b, so update it manually after writing the new etkey
+			if (off::cur.IsEtLegacy())
+				UpdateLegacyGuid(newEtKey);
 		}
 
 		// Remove trace/guid files (with backup just in case)
-		const auto modPath = tools::GetModulePath(GetModuleHandleA(XorString("cgame_mp_x86.dll"))).parent_path();
+		auto backupTraceFiles = [&ec](const std::filesystem::path &dir) {
+			std::filesystem::rename(dir / "nkey.dat", dir / "nkey.dat.bak", ec);
+			std::filesystem::rename(dir / "silent.dat", dir / "silent.dat.bak", ec);
+			std::filesystem::rename(dir / "etguid.dat", dir / "etguid.dat.bak", ec);
+		};
 
-		std::error_code ec;
-		std::filesystem::rename(modPath / "nkey.dat", modPath / "nkey.dat.bak", ec);
-		std::filesystem::rename(modPath / "silent.dat", modPath / "silent.dat.bak", ec);
-		std::filesystem::rename(modPath / "etguid.dat", modPath / "etguid.dat.bak", ec);
+		std::error_code directoryError;
+		for (std::filesystem::directory_iterator dir(homePath, std::filesystem::directory_options::skip_permission_denied, directoryError), end;
+			 !directoryError && dir != end; dir.increment(directoryError))
+		{
+			if (dir->is_directory(ec))
+				backupTraceFiles(dir->path());
+		}
 
 		char reconnectCommand[96];
 		strcpy_s(reconnectCommand, XorString("pb_myguid; net_port 27???; net_restart; vid_restart; pb_myguid; reconnect"));
